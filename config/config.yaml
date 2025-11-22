@@ -1,0 +1,43 @@
+# AkShare 金融分析工具配置文件
+
+# 数据存储配置
+data:
+  raw_data_path: "./data/raw/"
+  processed_data_path: "./data/processed/"
+  output_path: "./output/"
+
+# 股票配置
+stock:
+  default_symbols:
+    - "000001"  # 平安银行
+    - "600519"  # 贵州茅台
+    - "000858"  # 五粮液
+  default_period: "daily"  # daily, weekly, monthly
+  default_adjust: ""  # qfq(前复权), hfq(后复权), ""(不复权)
+
+# 技术指标配置
+indicators:
+  ma_periods: [5, 10, 20, 60, 120]
+  ema_periods: [12, 26]
+  macd:
+    fast: 12
+    slow: 26
+    signal: 9
+  rsi_period: 14
+  kdj:
+    n: 9
+    m1: 3
+    m2: 3
+
+# 可视化配置
+visualization:
+  figsize: [15, 8]
+  style: "seaborn-v0_8-darkgrid"
+  dpi: 100
+  save_format: "png"
+
+# 日期配置
+date:
+  default_start: "20240101"
+  default_end: "20241122"
+  date_format: "%Y%m%d"
