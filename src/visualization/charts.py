@@ -59,8 +59,15 @@ class ChartVisualizer:
             fig, ax1 = plt.subplots(figsize=self.figsize)
         
         # 绘制K线
-        for idx, row in df.iterrows():
-            date = row['日期'] if '日期' in df.columns else idx
+        dates = df['日期'] if '日期' in df.columns else df.index
+        # 转换为matplotlib date numbers
+        if pd.api.types.is_datetime64_any_dtype(dates):
+            date_nums = mdates.date2num(dates)
+        else:
+            date_nums = mdates.date2num(pd.to_datetime(dates))
+
+        for i, (idx, row) in enumerate(df.iterrows()):
+            date_num = date_nums[i]
             open_price = row['开盘']
             close_price = row['收盘']
             high_price = row['最高']
@@ -70,14 +77,17 @@ class ChartVisualizer:
             color = 'red' if close_price >= open_price else 'green'
             
             # 绘制影线
-            ax1.plot([date, date], [low_price, high_price], color='black', linewidth=0.5)
+            ax1.plot([date_num, date_num], [low_price, high_price], color='black', linewidth=0.5)
             
             # 绘制实体
             height = abs(close_price - open_price)
             bottom = min(open_price, close_price)
-            rect = Rectangle((date, bottom), width=0.6, height=height, 
+            # 居中显示，宽度0.6，所以左边界是 date_num - 0.3
+            rect = Rectangle((date_num - 0.3, bottom), width=0.6, height=height, 
                            facecolor=color, edgecolor='black', linewidth=0.5)
             ax1.add_patch(rect)
+            
+        ax1.xaxis_date()
         
         # 绘制移动平均线
         if ma_periods:
