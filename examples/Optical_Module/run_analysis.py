@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from src.data_fetch.stock_data import StockDataFetcher
 from src.analysis.sector import SectorAnalyzer
 from src.visualization.charts import ChartVisualizer
+from src.notification import send_email_notification
 from examples.Optical_Module import config
 
 # 设置中文字体
@@ -122,6 +123,38 @@ def main():
             print(f"✅ 个股K线图已保存至: {kline_output}")
         except Exception as e:
             print(f"❌ 绘制K线图失败: {e}")
+    
+    # 6. 发送邮件通知
+    # 请在 .env 文件中配置 GMAIL_USER 和 GMAIL_PASS
+    # 并在此处修改接收者邮箱
+    receiver_email = "qazyb123@gmail.com"  # <--- 请修改这里
+    
+    if receiver_email != "your_receiver@example.com":
+        print("\n正在发送邮件报告...")
+        subject = f"【AIQuant】光模块板块分析报告 ({time.strftime('%Y-%m-%d')})"
+        content = f"""
+        <h2>光模块板块分析完成</h2>
+        <p>分析时间: {time.strftime('%Y-%m-%d %H:%M:%S')}</p>
+        <p>当前板块指数点位: {sector_index.iloc[-1]:.2f}</p>
+        <p>今年以来涨跌幅: {(sector_index.iloc[-1] - 100):.2f}%</p>
+        <hr>
+        <p>附件包含最新的板块走势图和龙头股K线图。</p>
+        """
+        
+        attachments = [output_img]
+        if target_code in stock_data and os.path.exists(kline_output):
+            attachments.append(kline_output)
+            
+        send_email_notification(
+            to_list=[receiver_email],
+            subject=subject,
+            content=content,
+            attachment_paths=attachments
+        )
+    else:
+        print("\n⚠️ 未配置接收者邮箱，跳过邮件发送。")
+        print("   请在 run_analysis.py 中修改 receiver_email 变量。")
+
     # plt.show() # 如果在本地运行可以取消注释
 
 if __name__ == "__main__":

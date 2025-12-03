@@ -33,6 +33,10 @@ class ChartVisualizer:
             plt.style.use(style)
         except:
             plt.style.use('default')
+            
+        # 重新设置中文显示，防止被style覆盖
+        plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'Arial Unicode MS']
+        plt.rcParams['axes.unicode_minus'] = False
     
     def plot_candlestick(
         self,
