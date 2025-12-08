@@ -4,6 +4,7 @@
 
 import akshare as ak
 import pandas as pd
+import requests
 from typing import Optional
 from datetime import datetime, timedelta
 
@@ -32,10 +33,79 @@ class StockDataFetcher:
             return f"sh{symbol}"
         elif symbol.startswith('0') or symbol.startswith('3'):
             return f"sz{symbol}"
-        elif symbol.startswith('4') or symbol.startswith('8'):
+        if symbol.startswith('4') or symbol.startswith('8'):
             return f"bj{symbol}"
         return symbol
     
+    def get_stock_realtime_batch(self, symbol_list: list) -> pd.DataFrame:
+        """
+        批量获取指定股票的实时行情（腾讯源）
+        
+        Args:
+            symbol_list: 股票代码列表 (e.g., ["600519", "000001"])
+            
+        Returns:
+            pd.DataFrame: 包含实时行情的DataFrame
+        """
+        if not symbol_list:
+            return pd.DataFrame()
+            
+        # 构建请求URL
+        # 腾讯接口格式: http://qt.gtimg.cn/q=sh600519,sz000001
+        prefixed_symbols = [self._add_market_prefix(s) for s in symbol_list]
+        # 腾讯接口一次请求太多可能会失败，建议分批，这里假设列表不长
+        # 如果列表很长，可以分批请求
+        
+        all_data = []
+        batch_size = 50
+        for i in range(0, len(prefixed_symbols), batch_size):
+            batch = prefixed_symbols[i:i+batch_size]
+            url = f"http://qt.gtimg.cn/q={','.join(batch)}"
+            
+            try:
+                resp = requests.get(url, timeout=10)
+                if resp.status_code != 200:
+                    print(f"腾讯源请求失败: {resp.status_code}")
+                    continue
+                    
+                # 解析数据
+                lines = resp.text.strip().split(';')
+                for line in lines:
+                    if not line.strip():
+                        continue
+                    
+                    # line format: v_sh600519="1~贵州茅台~600519~..."
+                    parts = line.split('=')
+                    if len(parts) < 2:
+                        continue
+                        
+                    vals = parts[1].strip('"').split('~')
+                    if len(vals) < 46: # 确保有足够字段
+                        continue
+                        
+                    # 提取字段
+                    # 1:名称, 2:代码, 3:最新价, 32:涨跌幅(%), 36:成交量(手), 37:成交额(万), 44:流通市值(亿), 45:总市值(亿)
+                    try:
+                        item = {
+                            '代码': vals[2],
+                            '名称': vals[1],
+                            '最新价': float(vals[3]),
+                            '涨跌幅': float(vals[32]),
+                            '成交量': float(vals[36]), # 腾讯返回手
+                            '成交额': float(vals[37]) * 10000, # 腾讯返回万，转为元
+                            '流通市值': float(vals[44]) * 100000000 if vals[44] else 0, # 亿 -> 元
+                            '总市值': float(vals[45]) * 100000000 if vals[45] else 0, # 亿 -> 元
+                            '换手率': float(vals[38]) if vals[38] else 0
+                        }
+                        all_data.append(item)
+                    except (ValueError, IndexError) as e:
+                        # print(f"解析股票数据出错 {vals[2]}: {e}")
+                        continue
+            except Exception as e:
+                print(f"批量获取实时行情失败: {e}")
+                
+        return pd.DataFrame(all_data)
+
     def get_stock_list(self) -> pd.DataFrame:
         """
         获取A股股票列表
@@ -58,6 +128,8 @@ class StockDataFetcher:
                     'volume': '成交量',
                     'amount': '成交额',
                     'turnoverratio': '换手率',
+                    'mktcap': '总市值',  # 新浪源包含 mktcap 字段
+                    'nmc': '流通市值',     # 新浪源包含 nmc 字段
                     'high': '最高',
                     'low': '最低',
                     'open': '今开',
@@ -77,6 +149,66 @@ class StockDataFetcher:
             pd.DataFrame: 实时行情数据
         """
         return self.get_stock_list()
+
+    def get_stock_realtime_batch(self, symbols: list) -> pd.DataFrame:
+        """
+        批量获取股票实时行情 (腾讯源)
+        
+        Args:
+            symbols: 股票代码列表 (e.g., ["600519", "000001"])
+            
+        Returns:
+            pd.DataFrame: 实时行情数据
+        """
+        if not symbols:
+            return pd.DataFrame()
+            
+        # 添加前缀
+        prefixed_symbols = [self._add_market_prefix(s) for s in symbols]
+        
+        # 分批处理，每批80个
+        batch_size = 80
+        results = []
+        
+        for i in range(0, len(prefixed_symbols), batch_size):
+            batch = prefixed_symbols[i:i+batch_size]
+            query_str = ",".join(batch)
+            url = f"http://qt.gtimg.cn/q={query_str}"
+            
+            try:
+                resp = requests.get(url, timeout=5)
+                if resp.status_code == 200:
+                    # 解析数据
+                    lines = resp.text.strip().split(';')
+                    for line in lines:
+                        if not line.strip():
+                            continue
+                        # v_sh600519="1~贵州茅台~600519~..."
+                        try:
+                            content = line.split('="')[1].strip('"')
+                            parts = content.split('~')
+                            if len(parts) > 45:
+                                data = {
+                                    '代码': parts[2],
+                                    '名称': parts[1],
+                                    '最新价': float(parts[3]),
+                                    '涨跌幅': float(parts[32]),
+                                    '成交量': float(parts[6]), # 手
+                                    '成交额': float(parts[37]) * 10000, # 万 -> 元
+                                    '总市值': float(parts[45]) * 100000000, # 亿 -> 元
+                                    '换手率': float(parts[38]) if parts[38] else 0.0,
+                                    '最高': float(parts[33]),
+                                    '最低': float(parts[34]),
+                                    '今开': float(parts[5]),
+                                    '昨收': float(parts[4])
+                                }
+                                results.append(data)
+                        except Exception as e:
+                            continue
+            except Exception as e:
+                print(f"Batch fetch error: {e}")
+                
+        return pd.DataFrame(results)
 
     def get_stock_hist(
         self,
@@ -117,14 +249,15 @@ class StockDataFetcher:
             )
             if df is not None and not df.empty:
                 # 重命名列
+                # 注意：腾讯源返回的 amount 其实是成交量(手/股)，而不是成交额
+                # 腾讯源似乎没有返回成交额字段，或者字段名不同
                 df = df.rename(columns={
                     'date': '日期',
                     'open': '开盘',
                     'close': '收盘',
                     'high': '最高',
                     'low': '最低',
-                    'volume': '成交量',
-                    'amount': '成交额'
+                    'amount': '成交量'  # 修正：amount 映射为 成交量
                 })
                 # 确保日期格式
                 if '日期' in df.columns:
@@ -153,6 +286,11 @@ class StockDataFetcher:
                     'close': '收盘',
                     'volume': '成交量'
                 })
+                # 统一单位：新浪源返回的是股，转换为手(除以100)
+                # 腾讯源返回的是手，保持一致
+                if '成交量' in df.columns:
+                    df['成交量'] = df['成交量'] / 100
+                    
                 if '日期' in df.columns:
                     df['日期'] = pd.to_datetime(df['日期'])
                     df = df.sort_values('日期')
