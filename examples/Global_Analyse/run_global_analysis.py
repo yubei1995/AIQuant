@@ -1,4 +1,3 @@
-
 """
 全局板块加权分析 (基于 stock_list.xml)
 """
@@ -10,6 +9,9 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 import xml.etree.ElementTree as ET
+
+import concurrent.futures
+import matplotlib.pyplot as plt
 
 # 添加项目根目录到路径
 project_root = str(Path(__file__).parent.parent.parent)
@@ -23,17 +25,13 @@ OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
 if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)
 
-def load_stock_config(xml_path: str) -> dict:
+def load_stock_config(xml_path):
     """
     解析 stock_list.xml
     Returns:
         dict: {
-            'categories': {
-                'CategoryName': {
-                    'blocks': {
-                        'BlockName': [{'name': stock_name, 'code': stock_code}, ...]
-                    }
-                }
+            'blocks': {
+                'BlockName': [{'name': stock_name, 'code': stock_code}, ...]
             },
             'all_stocks': [] # list of dict {'name': name, 'code': code}
         }
@@ -42,19 +40,15 @@ def load_stock_config(xml_path: str) -> dict:
     root = tree.getroot()
     
     config = {
-        'categories': {},
+        'blocks': {},
         'all_stocks': []
     }
     
     for block in root.findall('Block'):
         block_name = block.get('name')
-        category_name = block.get('parentCategory')
         
-        if category_name not in config['categories']:
-            config['categories'][category_name] = {'blocks': {}}
-            
-        if block_name not in config['categories'][category_name]['blocks']:
-            config['categories'][category_name]['blocks'][block_name] = []
+        if block_name not in config['blocks']:
+            config['blocks'][block_name] = []
             
         for stock in block.findall('Stock'):
             stock_name = stock.text.strip()
@@ -62,7 +56,7 @@ def load_stock_config(xml_path: str) -> dict:
             
             stock_info = {'name': stock_name, 'code': stock_code}
             
-            config['categories'][category_name]['blocks'][block_name].append(stock_info)
+            config['blocks'][block_name].append(stock_info)
             config['all_stocks'].append(stock_info)
             
     return config
@@ -146,6 +140,15 @@ def calculate_historical_metrics(df: pd.DataFrame) -> dict:
         'RedDays': red_days
     }
 
+def fetch_stock_history(code, fetcher):
+    """获取单个股票历史数据 (用于多线程)"""
+    try:
+        # 获取最近一年的数据用于计算均线等
+        return fetcher.get_stock_hist(code, start_date="20240101", end_date="20251231")
+    except Exception as e:
+        print(f"获取 {code} 历史数据失败: {e}")
+        return None
+
 def main():
     print("=" * 50)
     print("开始全局板块加权分析")
@@ -216,82 +219,98 @@ def main():
     # 重新建立映射，使用简码作为key
     realtime_map = realtime_df.set_index('简码').to_dict('index')
     
-    results = []
+    # 4. 多线程获取历史数据
+    print(f"\n正在多线程获取 {len(valid_stocks)} 只股票的历史数据 (16线程)...")
+    history_data_map = {}
     
-    # 4. 遍历并计算指标
+    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
+        future_to_code = {
+            executor.submit(fetch_stock_history, code, fetcher): code 
+            for code in valid_stocks.values()
+        }
+        
+        completed = 0
+        total = len(future_to_code)
+        
+        for future in concurrent.futures.as_completed(future_to_code):
+            code = future_to_code[future]
+            completed += 1
+            print(f"[{completed}/{total}] 获取历史数据...", end="\r")
+            
+            try:
+                df = future.result()
+                if df is not None and not df.empty:
+                    history_data_map[code] = df
+            except Exception as e:
+                print(f"\n{code} 获取失败: {e}")
+                
+    print(f"\n成功获取 {len(history_data_map)} 只股票的历史数据")
+    
+    # 5. 遍历并计算指标 (单线程分析)
     print("\n开始计算个股指标...")
-    # 为了进度条显示，我们平铺遍历
+    results = []
     total_stocks = len(valid_stocks)
     processed = 0
     
-    for category, cat_data in config['categories'].items():
-        for block, stock_list in cat_data['blocks'].items():
-            for stock_info in stock_list:
-                name = stock_info['name']
-                if name not in valid_stocks:
+    for block, stock_list in config['blocks'].items():
+        for stock_info in stock_list:
+            name = stock_info['name']
+            if name not in valid_stocks:
+                continue
+                
+            full_code = valid_stocks[name]
+            # 获取简码用于查找
+            simple_code = full_code[2:] if full_code.startswith(('sh', 'sz', 'bj')) else full_code
+            
+            processed += 1
+            # 简单的进度显示
+            if processed % 10 == 0:
+                print(f"[{processed}/{total_stocks}] 分析中...", end="\r")
+            
+            if simple_code not in realtime_map:
+                # 尝试直接用 full_code 查找
+                if full_code not in realtime_map:
                     continue
-                    
-                full_code = valid_stocks[name]
-                # 获取简码用于查找
-                simple_code = full_code[2:] if full_code.startswith(('sh', 'sz', 'bj')) else full_code
+                else:
+                    simple_code = full_code
                 
-                processed += 1
-                print(f"[{processed}/{total_stocks}] 处理 {category}-{block}-{name} ({full_code})...", end="", flush=True)
+            rt_data = realtime_map[simple_code]
+            
+            try:
+                # 从预获取的字典中拿历史数据
+                df = history_data_map.get(full_code)
                 
-                if simple_code not in realtime_map:
-                    # 尝试直接用 full_code 查找
-                    if full_code not in realtime_map:
-                        print(" ⚠️ 无实时数据")
-                        continue
-                    else:
-                        simple_code = full_code
+                if df is not None and not df.empty:
+                    hist_metrics = calculate_historical_metrics(df)
                     
-                rt_data = realtime_map[simple_code]
-                
-                try:
-                    # 获取历史数据
-                    # 优化：如果不需要非常精确的历史均线，可以跳过这一步，或者只对重点股票做
-                    # 这里为了完整性，我们还是获取，但可能比较慢
-                    df = fetcher.get_stock_hist(full_code, start_date="20240101", end_date="20251231")
-                    
-                    if df is not None and not df.empty:
-                        hist_metrics = calculate_historical_metrics(df)
+                    if hist_metrics:
+                        current_vol = rt_data['成交量']
+                        current_pct = rt_data['涨跌幅']
+                        vol_ma5 = hist_metrics['VolMA5']
                         
-                        if hist_metrics:
-                            current_vol = rt_data['成交量']
-                            current_pct = rt_data['涨跌幅']
-                            vol_ma5 = hist_metrics['VolMA5']
-                            
-                            vol_dev = (current_vol - vol_ma5) / vol_ma5 if vol_ma5 > 0 else 0
-                            pct_dev = current_pct - hist_metrics['PctChangeMA5']
-                            price_eff = abs(current_pct) / (vol_ma5 / 10000) if vol_ma5 > 0 else 0
-                            
-                            results.append({
-                                'Category': category,
-                                'Block': block,
-                                '代码': full_code,
-                                '名称': name,
-                                '日期': datetime.now().strftime("%Y-%m-%d"),
-                                '收盘': rt_data['最新价'],
-                                '成交量': current_vol,
-                                '成交额': rt_data['成交额'],
-                                '涨跌幅(%)': round(current_pct, 2),
-                                '量比偏差': round(vol_dev, 4),
-                                '涨跌幅偏差': round(pct_dev, 2),
-                                '红盘天数': int(hist_metrics['RedDays']),
-                                '量价效率': round(price_eff, 4),
-                                '总市值': rt_data['总市值']
-                            })
-                            print(" ✅")
-                        else:
-                            print(" ⚠️ 历史数据不足")
-                    else:
-                        print(" ⚠️ 无法获取历史数据")
-                    
-                    time.sleep(0.2) # 避免请求过快
-                    
-                except Exception as e:
-                    print(f" ❌ 失败: {e}")
+                        vol_dev = (current_vol - vol_ma5) / vol_ma5 if vol_ma5 > 0 else 0
+                        pct_dev = current_pct - hist_metrics['PctChangeMA5']
+                        price_eff = abs(current_pct) / (vol_ma5 / 10000) if vol_ma5 > 0 else 0
+                        
+                        results.append({
+                            'Block': block,
+                            '代码': full_code,
+                            '名称': name,
+                            '日期': datetime.now().strftime("%Y-%m-%d"),
+                            '收盘': rt_data['最新价'],
+                            '成交量': current_vol,
+                            '成交额': rt_data['成交额'],
+                            '涨跌幅(%)': round(current_pct, 2),
+                            '量比偏差': round(vol_dev, 4),
+                            '涨跌幅偏差': round(pct_dev, 2),
+                            '红盘天数': int(hist_metrics['RedDays']),
+                            '量价效率': round(price_eff, 4),
+                            '总市值': rt_data['总市值']
+                        })
+            except Exception as e:
+                print(f"分析 {name} 失败: {e}")
+
+    print(f"\n处理完成，共生成 {len(results)} 条分析结果")
 
     if not results:
         print("未获取到有效数据")
@@ -305,7 +324,7 @@ def main():
     
     # 1. Block 级别聚合
     block_stats = []
-    for (cat, blk), group_df in df_results.groupby(['Category', 'Block']):
+    for blk, group_df in df_results.groupby('Block'):
         group_df['成交额'] = pd.to_numeric(group_df['成交额'], errors='coerce').fillna(0)
         total_amount = group_df['成交额'].sum()
         
@@ -316,7 +335,6 @@ def main():
             weighted_pct = group_df['涨跌幅(%)'].mean()
             
         block_stats.append({
-            '大类': cat,
             '细分板块': blk,
             '成交额加权涨跌幅(%)': round(weighted_pct, 2),
             '包含个股数': len(group_df),
@@ -325,43 +343,17 @@ def main():
         
     df_block = pd.DataFrame(block_stats).sort_values('成交额加权涨跌幅(%)', ascending=False)
     
-    # 2. Category 级别聚合
-    cat_stats = []
-    for cat, group_df in df_results.groupby('Category'):
-        group_df['成交额'] = pd.to_numeric(group_df['成交额'], errors='coerce').fillna(0)
-        total_amount = group_df['成交额'].sum()
-        
-        if total_amount > 0:
-            # 使用成交额加权
-            weighted_pct = (group_df['涨跌幅(%)'] * group_df['成交额']).sum() / total_amount
-        else:
-            weighted_pct = group_df['涨跌幅(%)'].mean()
-            
-        cat_stats.append({
-            '大类': cat,
-            '成交额加权涨跌幅(%)': round(weighted_pct, 2),
-            '包含个股数': len(group_df),
-            '总成交额(亿)': round(total_amount / 100000000, 2)
-        })
-        
-    df_cat = pd.DataFrame(cat_stats).sort_values('成交额加权涨跌幅(%)', ascending=False)
-
     # ==========================================
     # 输出结果
     # ==========================================
-    print("\n" + "="*60)
-    print("【表1】大类板块 (Category) 成交额加权涨跌幅排名")
-    print("="*60)
-    print(df_cat.to_string(index=False))
-    
-    print("\n" + "="*60)
-    print("【表2】细分板块 (Block) 成交额加权涨跌幅排名")
+    print("\\n" + "="*60)
+    print("【表1】细分板块 (Block) 成交额加权涨跌幅排名")
     print("="*60)
     print(df_block.to_string(index=False))
     
     # 打印每个细分板块的个股详情
-    print("\n" + "="*60)
-    print("【表3】细分板块个股详情")
+    print("\\n" + "="*60)
+    print("【表2】细分板块个股详情")
     print("="*60)
     
     # 对 df_results 进行排序：优先按板块在 df_block 中的顺序 (即涨跌幅排名)，其次按个股成交额
@@ -378,14 +370,11 @@ def main():
     df_results = df_results.drop(columns=['__block_rank'])
     
     # 按排序后的顺序打印
-    # 注意：groupby 会默认排序，所以我们这里直接遍历 unique block
-    # 或者直接利用已经排序好的 df_results 进行迭代
-    
     current_block = None
     for _, row in df_results.iterrows():
         if row['Block'] != current_block:
             current_block = row['Block']
-            print(f"\n>>> {row['Category']} - {current_block}")
+            print(f"\\n>>> {current_block}")
             
         amt_yi = row['成交额'] / 100000000
         mkt_yi = row['总市值'] / 100000000
@@ -402,10 +391,10 @@ def main():
     block_file = os.path.join(OUTPUT_DIR, "global_analysis_blocks.csv")
     df_block.to_csv(block_file, index=False, encoding='utf-8-sig')
     
-    print(f"\n✅ 结果已保存至目录: {OUTPUT_DIR}")
+    print(f"\\n✅ 结果已保存至目录: {OUTPUT_DIR}")
     
     # 生成可视化报告
-    generate_report(df_cat, df_block, df_results, OUTPUT_DIR, timestamp)
+    generate_report(df_block, df_results, OUTPUT_DIR, timestamp)
 
 if __name__ == "__main__":
     main()

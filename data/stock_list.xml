@@ -1,57 +1,65 @@
 <?xml version='1.0' encoding='utf-8'?>
 <StockData>
-    <Block name="国内线" parentCategory="电力设备（AI线）">
+    <Block name="国内AI储能/变压器">
         <Stock code="sh600089">特变电工</Stock>
         <Stock code="sz000400">许继电气</Stock>
     </Block>
-    <Block name="海外线" parentCategory="电力设备（AI线）">
+    <Block name="海外AI储能/变压器">
         <Stock code="sz002028">思源电气</Stock>
         <Stock code="sz300274">阳光电源</Stock>
+        <Stock code="sh688472">阿特斯</Stock>
     </Block>
-
-    <Block name="可控核聚变" parentCategory="可控核聚变">
+    <Block name="可控核聚变">
         <Stock code="sh688122">西部超导</Stock>
         <Stock code="sh603011">合锻智能</Stock>
         <Stock code="sh600105">永鼎股份</Stock>
         <Stock code="sh600577">精达股份</Stock>
     </Block>
-
-    <Block name="设备" parentCategory="半导体">
+    <Block name="半导体设备">
         <Stock code="sh688072">拓荆科技</Stock>
         <Stock code="sh688012">中微公司</Stock>
         <Stock code="sh688652">京仪装备</Stock>
         <Stock code="sz300604">长川科技</Stock>
+        <Stock code="sz002371">北方华创</Stock>
     </Block>
-    <Block name="封测" parentCategory="半导体">
+    <Block name="半导体封测">
         <Stock code="sh600584">长电科技</Stock>
         <Stock code="sz002156">通富微电</Stock>
+        <Stock code="sh688403">汇成股份</Stock>
     </Block>
-    <Block name="光刻胶" parentCategory="半导体">
+    <Block name="光刻胶">
         <Stock code="sz300260">新莱应材</Stock>
+        <Stock code="sz300054">鼎龙股份</Stock>
     </Block>
-    <Block name="光刻机" parentCategory="半导体">
+    <Block name="光刻机">
         <Stock code="sz002338">奥普光电</Stock>
         <Stock code="sz002549">凯美特气</Stock>
         <Stock code="sh600895">张江高科</Stock>
     </Block>
-    <Block name="CIS" parentCategory="半导体">
+    <Block name="CIS芯片">
+        <Stock code="sh688213">思特威</Stock>
         <Stock code="sh603501">豪威集团</Stock>
     </Block>
-    <Block name="存储芯片" parentCategory="半导体">
+    <Block name="存储芯片">
         <Stock code="sh603986">兆易创新</Stock>
         <Stock code="sh688008">澜起科技</Stock>
         <Stock code="sz300223">北京君正</Stock>
         <Stock code="sz300475">香农芯创</Stock>
+        <Stock code="sh688525">佰维存储</Stock>
     </Block>
-    <Block name="晶圆代工" parentCategory="半导体">
+    <Block name="晶圆代工">
         <Stock code="sh688981">中芯国际</Stock>
         <Stock code="sh688347">华虹公司</Stock>
     </Block>
-    <Block name="端侧芯片" parentCategory="半导体">
+    <Block name="端侧芯片">
         <Stock code="sh603893">瑞芯微</Stock>
     </Block>
-
-    <Block name="贵金属" parentCategory="贵金属">
+    <Block name="模拟芯片">
+        <Stock code="sz300661">圣邦股份</Stock>
+        <Stock code="sh688052">纳芯微</Stock>
+        <Stock code="sh600171">上海贝岭</Stock>
+    </Block>
+    <Block name="贵金属">
         <Stock code="sz000975">山金国际</Stock>
         <Stock code="sh601069">西部黄金</Stock>
         <Stock code="sz001337">四川黄金</Stock>
@@ -60,149 +68,201 @@
         <Stock code="sz002155">湖南黄金</Stock>
         <Stock code="sz000426">兴业银锡</Stock>
     </Block>
-
-    <Block name="铜矿" parentCategory="铜矿">
+    <Block name="铜矿">
         <Stock code="sh601899">紫金矿业</Stock>
         <Stock code="sz000737">北方铜业</Stock>
         <Stock code="sz000630">铜陵有色</Stock>
         <Stock code="sh600362">江西铜业</Stock>
     </Block>
-
-    <Block name="国产算力" parentCategory="国产算力">
+    <Block name="国产算力">
         <Stock code="sh688256">寒武纪</Stock>
         <Stock code="sz300474">景嘉微</Stock>
         <Stock code="sh688041">海光信息</Stock>
         <Stock code="sh688110">东芯股份</Stock>
         <Stock code="sh603019">中科曙光</Stock>
+        <Stock code="sh688795">摩尔线程</Stock>
     </Block>
-
-    <Block name="光模块" parentCategory="海外算力">
+    <Block name="海外算力：光模块">
         <Stock code="sz300308">中际旭创</Stock>
-        <Stock code="sz300502">新易盛</Stock>
-        <Stock code="sz300394">天孚通信</Stock>
+        <Stock code="sz300502">新易胜</Stock>
+        <Stock code="sz300394">天孚通讯</Stock>
     </Block>
-    <Block name="光芯片" parentCategory="海外算力">
+    <Block name="海外算力：光芯片">
         <Stock code="sh688498">源杰科技</Stock>
         <Stock code="sz301183">东田微</Stock>
     </Block>
-    <Block name="OCS" parentCategory="海外算力">
+    <Block name="海外算力：OCS">
         <Stock code="sz300620">光库科技</Stock>
         <Stock code="sz300548">长芯博创</Stock>
         <Stock code="sh688195">腾景科技</Stock>
         <Stock code="sz300456">赛微电子</Stock>
         <Stock code="sz002281">光迅科技</Stock>
     </Block>
-    <Block name="PCB" parentCategory="海外算力">
+    <Block name="海外算力：PCB">
         <Stock code="sz300476">胜宏科技</Stock>
         <Stock code="sz002463">沪电股份</Stock>
         <Stock code="sh688183">生益电子</Stock>
         <Stock code="sz002384">东山精密</Stock>
         <Stock code="sh603228">景旺电子</Stock>
+        <Stock code="sh600183">生益科技</Stock>
     </Block>
-    <Block name="液冷" parentCategory="海外算力">
+    <Block name="海外算力：液冷">
         <Stock code="sh600673">东阳光</Stock>
         <Stock code="sz002837">英维克</Stock>
     </Block>
-    <Block name="服务器" parentCategory="海外算力">
+    <Block name="海外算力：服务器">
         <Stock code="sh601138">工业富联</Stock>
     </Block>
-
-    <Block name="消费电子" parentCategory="消费电子">
+    <Block name="消费电子">
         <Stock code="sz002241">歌尔股份</Stock>
         <Stock code="sz002475">立讯精密</Stock>
-        <Stock code="sz002938">鹏鼎控股</Stock>
+        <Stock code="sz002938">鹏鼎股份</Stock>
         <Stock code="sz002273">水晶光电</Stock>
         <Stock code="sz002600">领益智造</Stock>
     </Block>
-
-    <Block name="锂矿" parentCategory="锂电">
+    <Block name="锂矿">
         <Stock code="sz002466">天齐锂业</Stock>
         <Stock code="sz002460">赣锋锂业</Stock>
         <Stock code="sz000792">盐湖股份</Stock>
+        <Stock code="sz002738">中矿资源</Stock>
     </Block>
-    <Block name="六氟磷酸锂" parentCategory="锂电">
+    <Block name="六氟磷酸锂">
         <Stock code="sz002407">多氟多</Stock>
         <Stock code="sh603026">石大胜华</Stock>
         <Stock code="sh603906">龙蟠科技</Stock>
+        <Stock code="sz002759">天际股份</Stock>
     </Block>
-    <Block name="电解液" parentCategory="锂电">
+    <Block name="电解液">
         <Stock code="sz002709">天赐材料</Stock>
+        <Stock code="sz002083">孚日股份</Stock>
+        <Stock code="sz301292">海科新源</Stock>
+        <Stock code="sz002326">永太科技</Stock>
     </Block>
-    <Block name="电极" parentCategory="锂电">
+    <Block name="锂电正负极">
         <Stock code="sh603659">璞泰来</Stock>
+        <Stock code="sz300073">当升科技</Stock>
+        <Stock code="sz002340">格林美</Stock>
     </Block>
-    <Block name="电芯" parentCategory="锂电">
+    <Block name="锂电池制造">
         <Stock code="sz300750">宁德时代</Stock>
         <Stock code="sz002074">国轩高科</Stock>
+        <Stock code="sz002850">科达利</Stock>
     </Block>
-
-    <Block name="多晶硅" parentCategory="光伏">
+    <Block name="多晶硅">
         <Stock code="sh600438">通威股份</Stock>
         <Stock code="sz002506">协鑫集成</Stock>
     </Block>
-    <Block name="高纯石英砂" parentCategory="光伏">
+    <Block name="高纯石英砂">
         <Stock code="sh603688">石英股份</Stock>
         <Stock code="sz001269">欧晶科技</Stock>
     </Block>
-    <Block name="硅片" parentCategory="光伏">
+    <Block name="光伏硅片">
         <Stock code="sz002129">TCL中环</Stock>
         <Stock code="sh601012">隆基绿能</Stock>
     </Block>
-    <Block name="逆变器" parentCategory="光伏">
+    <Block name="光伏逆变器">
         <Stock code="sz300763">锦浪股份</Stock>
+        <Stock code="sh688390">固德威</Stock>
+        <Stock code="sz300274">阳光电源</Stock>
     </Block>
-    <Block name="电池片" parentCategory="光伏">
+    <Block name="光伏电池/组件">
         <Stock code="sh600732">爱旭股份</Stock>
-    </Block>
-    <Block name="储能" parentCategory="光伏">
         <Stock code="sh688599">天合光能</Stock>
+        <Stock code="sz002459">晶澳科技</Stock>
+        <Stock code="sh688223">晶科能源</Stock>
     </Block>
-
-    <Block name="游戏传媒" parentCategory="游戏传媒">
+    <Block name="游戏传媒">
         <Stock code="sz002555">三七互娱</Stock>
         <Stock code="sz002624">完美世界</Stock>
         <Stock code="sh603444">吉比特</Stock>
         <Stock code="sz002602">世纪华通</Stock>
+        <Stock code="sz300364">中文在线</Stock>
     </Block>
-
-    <Block name="商业航天" parentCategory="商业航天">
+    <Block name="商业航天">
         <Stock code="sz000547">航天发展</Stock>
         <Stock code="sh600343">航天动力</Stock>
         <Stock code="sz003009">中天火箭</Stock>
     </Block>
-
-    <Block name="机器人" parentCategory="机器人">
+    <Block name="机器人">
         <Stock code="sz300115">长盈精密</Stock>
         <Stock code="sz002050">三花智控</Stock>
         <Stock code="sh603119">浙江荣泰</Stock>
         <Stock code="sh601689">拓普集团</Stock>
     </Block>
-
-    <Block name="风电" parentCategory="风电">
+    <Block name="风电">
         <Stock code="sz002487">大金重工</Stock>
         <Stock code="sh603606">东方电缆</Stock>
         <Stock code="sz301155">海力风电</Stock>
         <Stock code="sh601615">明阳智能</Stock>
         <Stock code="sz002202">金风科技</Stock>
     </Block>
-
-    <Block name="石油" parentCategory="石油">
+    <Block name="石油">
         <Stock code="sh600938">中国海油</Stock>
         <Stock code="sh603619">中曼石油</Stock>
         <Stock code="sz002207">准油股份</Stock>
         <Stock code="sh600759">洲际油气</Stock>
     </Block>
-
-    <Block name="消费" parentCategory="消费">
+    <Block name="白酒">
         <Stock code="sz000568">泸州老窖</Stock>
         <Stock code="sh600519">贵州茅台</Stock>
-        <Stock code="sh600702">舍得酒业</Stock>
+        <Stock code="sh600702">舍得股份</Stock>
         <Stock code="sz000858">五粮液</Stock>
     </Block>
-
-    <Block name="地产" parentCategory="地产">
+    <Block name="地产">
         <Stock code="sh600048">保利发展</Stock>
         <Stock code="sz001979">招商蛇口</Stock>
         <Stock code="sz000560">我爱我家</Stock>
+    </Block>
+    <Block name="煤炭">
+        <Stock code="sh601225">陕西煤业</Stock>
+        <Stock code="sh601088">中国神华</Stock>
+        <Stock code="sz000983">山西焦煤</Stock>
+    </Block>
+    <Block name="电解铝">
+        <Stock code="sh601600">中国铝业</Stock>
+        <Stock code="sz000807">云铝股份</Stock>
+        <Stock code="sh600219">南山铝业</Stock>
+        <Stock code="sh600595">中孚实业</Stock>
+    </Block>
+    <Block name="稀土/稀有金属">
+        <Stock code="sh600111">北方稀土</Stock>
+        <Stock code="sz000831">中国稀土</Stock>
+        <Stock code="sh601020">华钰矿业</Stock>
+        <Stock code="sh600366">宁波韵升</Stock>
+        <Stock code="sz002155">湖南黄金</Stock>
+    </Block>
+    <Block name="消费零售">
+        <Stock code="sh601933">永辉超市</Stock>
+        <Stock code="sh603101">汇嘉时代</Stock>
+        <Stock code="sh600859">王府井</Stock>
+        <Stock code="sh601888">中国中免</Stock>
+        <Stock code="sz000564">供销大集</Stock>
+        <Stock code="sh603708">家家悦</Stock>
+    </Block>
+    <Block name="券商">
+        <Stock code="sh601211">国泰海通</Stock>
+        <Stock code="sz002797">第一创业</Stock>
+        <Stock code="sh601377">兴业证券</Stock>
+        <Stock code="sh601162">天风证券</Stock>
+        <Stock code="sz300059">东方财富</Stock>
+    </Block>
+    <Block name="银行">
+        <Stock code="sh601988">中国银行</Stock>
+        <Stock code="sh601398">工商银行</Stock>
+        <Stock code="sh601288">农业银行</Stock>
+        <Stock code="sh601939">建设银行</Stock>
+    </Block>
+    <Block name="新消费">
+        <Stock code="sz002878">元隆雅图</Stock>
+        <Stock code="sz300220">金运激光</Stock>
+        <Stock code="sz002376">新北洋</Stock>
+        <Stock code="sh603711">香飘飘</Stock>
+        <Stock code="sh603607">京华激光</Stock>
+        <Stock code="sz002907">华森制药</Stock>
+        <Stock code="sz002292">奥飞娱乐</Stock>
+        <Stock code="sz002103">广博股份</Stock>
+        <Stock code="sz002354">天娱数科</Stock>
+        <Stock code="sz002862">实丰文化</Stock>
+        <Stock code="sh603332">苏州龙杰</Stock>
     </Block>
 </StockData>

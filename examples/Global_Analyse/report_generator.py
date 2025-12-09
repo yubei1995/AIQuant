@@ -12,7 +12,7 @@ from openpyxl.styles import Font, Alignment, PatternFill
 plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS']
 plt.rcParams['axes.unicode_minus'] = False
 
-def generate_report(df_cat: pd.DataFrame, df_block: pd.DataFrame, df_details: pd.DataFrame, output_dir: str, timestamp: str):
+def generate_report(df_block: pd.DataFrame, df_details: pd.DataFrame, output_dir: str, timestamp: str):
     """
     生成分析报告：包含图表和Excel文件
     """
@@ -40,7 +40,6 @@ def generate_report(df_cat: pd.DataFrame, df_block: pd.DataFrame, df_details: pd
     try:
         with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
             # 写入各个Sheet
-            df_cat.to_excel(writer, sheet_name='大类概览', index=False)
             df_block.to_excel(writer, sheet_name='板块概览', index=False)
             df_sorted_details.to_excel(writer, sheet_name='个股详情', index=False)
             
@@ -103,10 +102,6 @@ def _format_excel(excel_path: str, chart_path: str):
     # 2. 格式化 "个股详情" Sheet
     ws_details = wb['个股详情']
     _adjust_column_width(ws_details)
-    
-    # 3. 格式化 "大类概览" Sheet
-    ws_cat = wb['大类概览']
-    _adjust_column_width(ws_cat)
     
     wb.save(excel_path)
 
