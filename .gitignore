@@ -36,11 +36,8 @@ data/*.xls
 !data/.gitkeep
 
 # Output files
-output/*.png
-output/*.jpg
-output/*.pdf
-output/*.html
-!output/.gitkeep
+output/
+**/output/
 
 # IDE
 .vscode/
