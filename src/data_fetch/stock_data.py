@@ -237,37 +237,7 @@ class StockDataFetcher:
         if not end_date:
             end_date = datetime.now().strftime("%Y%m%d")
             
-        # 1. 尝试腾讯源 (Tencent)
-        try:
-            # print(f"尝试腾讯源获取 {symbol}...")
-            tx_symbol = self._add_market_prefix(symbol)
-            df = ak.stock_zh_a_hist_tx(
-                symbol=tx_symbol,
-                start_date=start_date,
-                end_date=end_date,
-                adjust=adjust
-            )
-            if df is not None and not df.empty:
-                # 重命名列
-                # 注意：腾讯源返回的 amount 其实是成交量(手/股)，而不是成交额
-                # 腾讯源似乎没有返回成交额字段，或者字段名不同
-                df = df.rename(columns={
-                    'date': '日期',
-                    'open': '开盘',
-                    'close': '收盘',
-                    'high': '最高',
-                    'low': '最低',
-                    'amount': '成交量'  # 修正：amount 映射为 成交量
-                })
-                # 确保日期格式
-                if '日期' in df.columns:
-                    df['日期'] = pd.to_datetime(df['日期'])
-                    df = df.sort_values('日期')
-                return df
-        except Exception as e:
-            print(f"腾讯源获取失败: {e}")
-
-        # 2. 尝试新浪源 (Sina)
+        # 1. 尝试新浪源 (Sina)
         try:
             # print(f"尝试新浪源获取 {symbol}...")
             sina_symbol = self._add_market_prefix(symbol)
@@ -297,6 +267,36 @@ class StockDataFetcher:
                 return df
         except Exception as e:
             print(f"新浪源获取失败: {e}")
+
+        # 2. 尝试腾讯源 (Tencent)
+        try:
+            # print(f"尝试腾讯源获取 {symbol}...")
+            tx_symbol = self._add_market_prefix(symbol)
+            df = ak.stock_zh_a_hist_tx(
+                symbol=tx_symbol,
+                start_date=start_date,
+                end_date=end_date,
+                adjust=adjust
+            )
+            if df is not None and not df.empty:
+                # 重命名列
+                # 注意：腾讯源返回的 amount 其实是成交量(手/股)，而不是成交额
+                # 腾讯源似乎没有返回成交额字段，或者字段名不同
+                df = df.rename(columns={
+                    'date': '日期',
+                    'open': '开盘',
+                    'close': '收盘',
+                    'high': '最高',
+                    'low': '最低',
+                    'amount': '成交量'  # 修正：amount 映射为 成交量
+                })
+                # 确保日期格式
+                if '日期' in df.columns:
+                    df['日期'] = pd.to_datetime(df['日期'])
+                    df = df.sort_values('日期')
+                return df
+        except Exception as e:
+            print(f"腾讯源获取失败: {e}")
             
         return pd.DataFrame()
     
