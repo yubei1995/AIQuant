@@ -61,13 +61,13 @@ def generate_html_report(csv_path, output_path):
                 }},
                 legend: {{
                     data: ['1d(%)', '3d(%)', '5d(%)', '10d(%)'],
-                    top: 'bottom'
-                    // selectedMode: 'single' removed to show all initially
+                    top: '5%'
                 }},
                 grid: {{
                     left: '2%',
                     right: '2%',
-                    bottom: '10%',
+                    bottom: '15%',
+                    top: '15%',
                     containLabel: true
                 }},
                 dataZoom: [
@@ -76,7 +76,8 @@ def generate_html_report(csv_path, output_path):
                         show: true,
                         xAxisIndex: [0],
                         start: 0,
-                        end: 100
+                        end: 100,
+                        bottom: '5%'
                     }},
                     {{
                         type: 'inside',
@@ -161,7 +162,7 @@ if __name__ == "__main__":
     # Default paths
     current_dir = os.path.dirname(os.path.abspath(__file__))
     date_str = datetime.now().strftime("%Y%m%d")
-    csv_file = os.path.join(current_dir, "output", f"global_analysis_details_{date_str}.csv")
+    csv_file = os.path.join(current_dir, "output", f"block_statistics_{date_str}.csv")
     html_file = os.path.join(current_dir, "output", f"global_analysis_report_{date_str}.html")
     
     generate_html_report(csv_file, html_file)
