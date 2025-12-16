@@ -7,13 +7,14 @@
     <Block name="海外AI储能/变压器">
         <Stock code="sz002028">思源电气</Stock>
         <Stock code="sz300274">阳光电源</Stock>
-        <Stock code="sh688472">阿特斯</Stock>
+        <Stock code="sh688472">阿斯特</Stock>
     </Block>
     <Block name="可控核聚变">
         <Stock code="sh688122">西部超导</Stock>
         <Stock code="sh603011">合锻智能</Stock>
         <Stock code="sh600105">永鼎股份</Stock>
         <Stock code="sh600577">精达股份</Stock>
+        <Stock code="sh601611">中国核建</Stock>
     </Block>
     <Block name="半导体设备">
         <Stock code="sh688072">拓荆科技</Stock>
@@ -47,14 +48,10 @@
         <Stock code="sz300475">香农芯创</Stock>
         <Stock code="sh688525">佰维存储</Stock>
     </Block>
-    <Block name="晶圆代工">
+    <Block name="半导体辨识度">
         <Stock code="sh688981">中芯国际</Stock>
         <Stock code="sh688347">华虹公司</Stock>
-    </Block>
-    <Block name="端侧芯片">
         <Stock code="sh603893">瑞芯微</Stock>
-    </Block>
-    <Block name="模拟芯片">
         <Stock code="sz300661">圣邦股份</Stock>
         <Stock code="sh688052">纳芯微</Stock>
         <Stock code="sh600171">上海贝岭</Stock>
@@ -90,13 +87,14 @@
     <Block name="海外算力：光芯片">
         <Stock code="sh688498">源杰科技</Stock>
         <Stock code="sz301183">东田微</Stock>
+        <Stock code="sh688313">仕佳光子</Stock>
     </Block>
     <Block name="海外算力：OCS">
         <Stock code="sz300620">光库科技</Stock>
         <Stock code="sz300548">长芯博创</Stock>
         <Stock code="sh688195">腾景科技</Stock>
         <Stock code="sz300456">赛微电子</Stock>
-        <Stock code="sz002281">光迅科技</Stock>
+        <Stock code="sz002281">光讯科技</Stock>
     </Block>
     <Block name="海外算力：PCB">
         <Stock code="sz300476">胜宏科技</Stock>
@@ -105,6 +103,12 @@
         <Stock code="sz002384">东山精密</Stock>
         <Stock code="sh603228">景旺电子</Stock>
         <Stock code="sh600183">生益科技</Stock>
+    </Block>
+    <Block name="海外算力：PCB上游">
+        <Stock code="sz300395">菲利华</Stock>
+        <Stock code="sz301200">大族数控</Stock>
+        <Stock code="sz002008">大族激光</Stock>
+        <Stock code="sz002080">中材科技</Stock>
     </Block>
     <Block name="海外算力：液冷">
         <Stock code="sh600673">东阳光</Stock>
@@ -151,8 +155,6 @@
     <Block name="多晶硅">
         <Stock code="sh600438">通威股份</Stock>
         <Stock code="sz002506">协鑫集成</Stock>
-    </Block>
-    <Block name="高纯石英砂">
         <Stock code="sh603688">石英股份</Stock>
         <Stock code="sz001269">欧晶科技</Stock>
     </Block>
@@ -182,12 +184,18 @@
         <Stock code="sz000547">航天发展</Stock>
         <Stock code="sh600343">航天动力</Stock>
         <Stock code="sz003009">中天火箭</Stock>
+        <Stock code="sh600118">中国卫星</Stock>
+        <Stock code="sz002389">航天彩虹</Stock>
+        <Stock code="sh600879">航天电子</Stock>
     </Block>
     <Block name="机器人">
         <Stock code="sz300115">长盈精密</Stock>
         <Stock code="sz002050">三花智控</Stock>
         <Stock code="sh603119">浙江荣泰</Stock>
         <Stock code="sh601689">拓普集团</Stock>
+        <Stock code="sh600580">卧龙电驱</Stock>
+        <Stock code="sh603728">鸣志电器</Stock>
+        <Stock code="sz300124">汇川技术</Stock>
     </Block>
     <Block name="风电">
         <Stock code="sz002487">大金重工</Stock>
@@ -238,6 +246,7 @@
         <Stock code="sh601888">中国中免</Stock>
         <Stock code="sz000564">供销大集</Stock>
         <Stock code="sh603708">家家悦</Stock>
+        <Stock code="sz002570">贝因美</Stock>
     </Block>
     <Block name="券商">
         <Stock code="sh601211">国泰海通</Stock>
@@ -264,5 +273,12 @@
         <Stock code="sz002354">天娱数科</Stock>
         <Stock code="sz002862">实丰文化</Stock>
         <Stock code="sh603332">苏州龙杰</Stock>
+    </Block>
+    <Block name="军工">
+        <Stock code="sz302132">中航成飞</Stock>
+        <Stock code="sh600760">中航沈飞</Stock>
+        <Stock code="sz000768">中航西飞</Stock>
+        <Stock code="sh600893">航发动力</Stock>
+        <Stock code="sh601606">长城军工</Stock>
     </Block>
 </StockData>
