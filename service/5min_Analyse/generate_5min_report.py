@@ -2,7 +2,7 @@ import json
 import os
 import sys
 
-def generate_30min_report(json_path, output_path):
+def generate_5min_report(json_path, output_path):
     if not os.path.exists(json_path):
         print(f"Error: Data file not found {json_path}")
         return
@@ -41,7 +41,7 @@ def generate_30min_report(json_path, output_path):
 <html style="height: 100%">
    <head>
        <meta charset="utf-8">
-       <title>30-Min Block Analysis</title>
+       <title>5-Min Block Analysis</title>
        <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
        <style>
            body {{ margin: 0; font-family: sans-serif; background: #fff; }}
@@ -94,7 +94,7 @@ def generate_30min_report(json_path, output_path):
    </head>
    <body>
        <div class="header">
-           <h2>30-Min Block Analysis</h2>
+           <h2>5-Min Block Analysis</h2>
            <button onclick="resetView()">Reset Zoom (Top 5)</button>
            <span style="margin-left: 20px; color: #666; font-size: 12px;">* Click bars/lines to isolate. Slider highlights range.</span>
        </div>
@@ -203,11 +203,8 @@ def generate_30min_report(json_path, output_path):
             }});
             
             // Create Line Series for ALL blocks (Bottom Chart: Dynamic Weight)
-            // We use the same name so legend toggles both? 
-            // ECharts allows duplicate names.
             sortedNames.forEach(function(name) {{
                 var data = rawData[name];
-                // Check if dynamic_values exists (it should with new backend)
                 var dynVals = data.dynamic_values || data.values; 
                 
                 seriesList.push({{
@@ -218,7 +215,7 @@ def generate_30min_report(json_path, output_path):
                     data: dynVals.map((val, idx) => [allTimes[idx], val]),
                     smooth: true,
                     showSymbol: false,
-                    lineStyle: {{ width: 2, color: colorMap[name], type: 'dashed' }}, // Dashed to distinguish? Or solid?
+                    lineStyle: {{ width: 2, color: colorMap[name], type: 'dashed' }}, 
                     itemStyle: {{ color: colorMap[name] }},
                     emphasis: {{ focus: 'series', lineStyle: {{ width: 4 }} }}
                 }});
@@ -435,7 +432,7 @@ if __name__ == "__main__":
     from datetime import datetime
     current_dir = os.path.dirname(os.path.abspath(__file__))
     date_str = datetime.now().strftime("%Y%m%d")
-    json_file = os.path.join(current_dir, "output", f"30min_data_{date_str}.json")
-    html_file = os.path.join(current_dir, "output", f"30min_analysis_{date_str}.html")
+    json_file = os.path.join(current_dir, "output", f"5min_data_{date_str}.json")
+    html_file = os.path.join(current_dir, "output", f"5min_analysis_{date_str}.html")
     
-    generate_30min_report(json_file, html_file)
+    generate_5min_report(json_file, html_file)
