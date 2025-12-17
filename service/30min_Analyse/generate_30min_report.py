@@ -182,12 +182,14 @@ def generate_30min_report(json_path, output_path):
             
             var seriesList = [];
             
-            // Create Line Series for ALL blocks
+            // Create Line Series for ALL blocks (Top Chart: Fixed Weight)
             sortedNames.forEach(function(name) {{
                 var data = rawData[name];
                 seriesList.push({{
                     name: name,
                     type: 'line',
+                    xAxisIndex: 0,
+                    yAxisIndex: 0,
                     data: data.values.map((val, idx) => [allTimes[idx], val]),
                     smooth: true,
                     showSymbol: false,
@@ -197,11 +199,45 @@ def generate_30min_report(json_path, output_path):
                 }});
             }});
             
-            // Add Volume Series (Hidden by default)
+            // Create Line Series for ALL blocks (Bottom Chart: Dynamic Weight)
+            // We use the same name so legend toggles both? 
+            // ECharts allows duplicate names.
+            sortedNames.forEach(function(name) {{
+                var data = rawData[name];
+                // Check if dynamic_values exists (it should with new backend)
+                var dynVals = data.dynamic_values || data.values; 
+                
+                seriesList.push({{
+                    name: name, // Same name to link with top chart
+                    type: 'line',
+                    xAxisIndex: 1,
+                    yAxisIndex: 2, // Left axis of bottom grid
+                    data: dynVals.map((val, idx) => [allTimes[idx], val]),
+                    smooth: true,
+                    showSymbol: false,
+                    lineStyle: {{ width: 2, color: colorMap[name], type: 'dashed' }}, // Dashed to distinguish? Or solid?
+                    itemStyle: {{ color: colorMap[name] }},
+                    emphasis: {{ focus: 'series', lineStyle: {{ width: 4 }} }}
+                }});
+            }});
+            
+            // Add Cumulative Volume Series (Hidden by default) - Put on Top Chart (Right Axis)
+            seriesList.push({{
+                name: 'CumVolume',
+                type: 'bar',
+                xAxisIndex: 0,
+                yAxisIndex: 1, // Right axis of top grid
+                data: [],
+                itemStyle: {{ color: 'rgba(100, 100, 100, 0.2)' }},
+                barMaxWidth: 20
+            }});
+
+            // Add Interval Volume Series (Hidden by default) - Put on Bottom Chart (Right Axis)
             seriesList.push({{
                 name: 'Volume',
                 type: 'bar',
-                yAxisIndex: 1,
+                xAxisIndex: 1,
+                yAxisIndex: 3, // Right axis of bottom grid
                 data: [],
                 itemStyle: {{ color: 'rgba(100, 100, 100, 0.3)' }},
                 barMaxWidth: 20
@@ -211,20 +247,49 @@ def generate_30min_report(json_path, output_path):
                 tooltip: {{
                     trigger: 'axis',
                     axisPointer: {{ type: 'cross' }},
-                    order: 'valueDesc'
+                    order: 'valueDesc',
+                    formatter: function (params) {{
+                        // Custom tooltip to show both charts info clearly
+                        return params[0].name + '<br/>' + params.map(p => {{
+                            var val = Array.isArray(p.value) ? p.value[1] : p.value;
+                            if (p.seriesName === 'Volume') return p.marker + 'Interval Vol: ' + (val/100000000).toFixed(2) + '亿';
+                            if (p.seriesName === 'CumVolume') return p.marker + 'Cum Vol: ' + (val/100000000).toFixed(2) + '亿';
+                            
+                            var label = p.seriesName;
+                            if (p.axisIndex === 1) label += ' (Dynamic)';
+                            return p.marker + label + ': ' + val + '%';
+                        }}).join('<br/>');
+                    }}
                 }},
                 legend: {{ show: false }},
-                grid: {{ left: '3%', right: '3%', bottom: '5%', top: '40px', containLabel: true }},
-                xAxis: {{ type: 'category', boundaryGap: false, data: allTimes }},
+                axisPointer: {{ link: [{{ xAxisIndex: 'all' }}] }}, // Sync crosshair
+                grid: [
+                    {{ left: '3%', right: '3%', top: '30px', height: '45%', containLabel: true }}, // Top Grid
+                    {{ left: '3%', right: '3%', top: '55%', height: '40%', containLabel: true }}   // Bottom Grid
+                ],
+                xAxis: [
+                    {{ type: 'category', boundaryGap: false, data: allTimes, gridIndex: 0, axisLabel: {{ show: false }} }}, // Top X (Hidden labels)
+                    {{ type: 'category', boundaryGap: false, data: allTimes, gridIndex: 1 }}  // Bottom X
+                ],
                 yAxis: [
-                    {{ type: 'value', name: 'Return (%)', position: 'left', scale: true }},
+                    {{ type: 'value', name: 'Cum. Weight (%)', position: 'left', scale: true, gridIndex: 0 }}, // Top Left
                     {{ 
                         type: 'value', 
-                        name: 'Volume', 
+                        name: 'Cum. Volume', 
                         position: 'right', 
                         splitLine: {{ show: false }},
-                        axisLabel: {{ formatter: v => (v/100000000).toFixed(1) + '亿' }}
-                    }}
+                        axisLabel: {{ formatter: v => (v/100000000).toFixed(1) + '亿' }},
+                        gridIndex: 0 
+                    }}, // Top Right
+                    {{ type: 'value', name: 'Interval Weight (%)', position: 'left', scale: true, gridIndex: 1 }}, // Bottom Left
+                    {{ 
+                        type: 'value', 
+                        name: 'Interval Volume', 
+                        position: 'right', 
+                        splitLine: {{ show: false }},
+                        axisLabel: {{ formatter: v => (v/100000000).toFixed(1) + '亿' }},
+                        gridIndex: 1
+                    }} // Bottom Right
                 ],
                 series: seriesList
             }};
@@ -260,7 +325,8 @@ def generate_30min_report(json_path, output_path):
                 trendChart.setOption({{
                     legend: {{ selected: newSelected }},
                     series: [
-                        {{ name: 'Volume', data: [] }}
+                        {{ name: 'CumVolume', data: [] }}, // Clear cum volume
+                        {{ name: 'Volume', data: [] }} // Clear volume
                     ]
                 }});
                 
@@ -300,10 +366,12 @@ def generate_30min_report(json_path, output_path):
                 newSelected[name] = true;
                 
                 var volData = rawData[name].volumes;
+                var cumVolData = rawData[name].cum_volumes;
                 
                 trendChart.setOption({{
                     legend: {{ selected: newSelected }},
                     series: [
+                        {{ name: 'CumVolume', data: cumVolData }},
                         {{ name: 'Volume', data: volData }}
                     ]
                 }});

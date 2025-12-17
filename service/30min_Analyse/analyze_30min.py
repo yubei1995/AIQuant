@@ -78,6 +78,17 @@ def fetch_30min_data(code):
         if 'data' not in stock_data or 'data' not in stock_data['data']:
             return None
             
+        # Try to get previous close from 'qt'
+        prev_close = None
+        if 'qt' in stock_data and tencent_code in stock_data['qt']:
+            qt_data = stock_data['qt'][tencent_code]
+            # qt_data is usually a list. Index 4 is PrevClose.
+            if isinstance(qt_data, list) and len(qt_data) > 4:
+                try:
+                    prev_close = float(qt_data[4])
+                except:
+                    pass
+
         min_data = stock_data['data']['data']
         if not min_data:
             return None
@@ -127,19 +138,45 @@ def fetch_30min_data(code):
         
         # Aggregate
         # Close: last price in the bucket
-        # Amount: sum of amounts
+        # Amount: sum of amounts? 
+        # Wait, Tencent minute data 'amount' is usually cumulative turnover for the day?
+        # Let's check the raw data format.
+        # Usually minute data returns cumulative volume/amount.
+        # If so, we need to calculate diff.
+        # But wait, if it's minute data, usually it's per minute.
+        # However, if the chart shows increasing bars, it means we are summing up cumulative values or the source is cumulative.
+        
+        # Let's assume Tencent returns cumulative amount.
+        # If so, we need to take the last amount of the bucket - last amount of previous bucket.
+        # But here we are grouping by bar_time and summing 'amount'.
+        # If 'amount' in raw data is cumulative, summing it is wrong.
+        # If 'amount' is per minute, summing it is correct for the interval.
+        
+        # Let's look at the values in JSON.
+        # "volumes": [175亿, 454亿, 574亿...] -> Clearly increasing.
+        # This suggests that the 'amount' we get from Tencent is CUMULATIVE for the day.
+        
+        # If Tencent returns cumulative amount:
+        # We should take the MAX amount in the bucket as the cumulative amount at that time.
+        # Then calculate the difference between buckets to get interval amount.
+        
         df_agg = df.groupby('bar_time').agg({
             'price': 'last',
-            'amount': 'sum'
+            'amount': 'max' # Take max (cumulative) amount in the bucket
         }).reset_index()
         
         df_agg['时间'] = today_str + ' ' + df_agg['bar_time']
-        df_agg.rename(columns={'price': '收盘', 'amount': '成交额'}, inplace=True)
+        df_agg.rename(columns={'price': '收盘', 'amount': '累积成交额'}, inplace=True)
         
         # Sort by time
         df_agg.sort_values('时间', inplace=True)
         
-        return df_agg[['时间', '收盘', '成交额']]
+        # Calculate Interval Amount
+        # Interval = Current Cumulative - Previous Cumulative
+        # For the first bucket, it's just the value (minus 0 or pre-market, but we assume 0)
+        df_agg['成交额'] = df_agg['累积成交额'].diff().fillna(df_agg['累积成交额'])
+        
+        return df_agg[['时间', '收盘', '成交额']], prev_close
 
     except Exception as e:
         # print(f"Tencent fetch failed for {code}: {e}")
@@ -182,24 +219,53 @@ def process_block_data(block_name, stock_list, valid_stocks):
     
     # 1. Normalize each stock
     normalized_series = []
+    interval_pct_series_list = [] # New list for interval pcts
     volume_series = []
     
     common_time_index = None
     
-    for df in dfs:
+    for item in dfs:
+        df, prev_close = item
         df = df.sort_values('时间').reset_index(drop=True)
         if df.empty: continue
         
-        # Use the first timestamp as baseline?
-        # Or just use the first row's open? We only have Close here.
-        # Let's use the first row's Close as base (0%).
-        base_price = df.iloc[0]['收盘']
+        # Use prev_close as baseline if available to match Block_Analyse (1d%)
+        # Otherwise use the first row's Close
+        base_price = prev_close if (prev_close and prev_close > 0) else df.iloc[0]['收盘']
         if base_price == 0: continue
         
-        # Calculate pct change series
+        # Calculate pct change series (Cumulative from Pre-Close)
         pct_series = (df['收盘'] - base_price) / base_price * 100
         pct_series.index = df['时间']
         normalized_series.append(pct_series)
+        
+        # Calculate Interval Pct Change (Current Close vs Previous Bar Close)
+        # For the first bar, compare with Pre-Close
+        # We can use pct_change() on the Close series, but need to handle the first element carefully
+        # Or just calculate manually
+        closes = df['收盘'].values
+        interval_pcts = []
+        for i in range(len(closes)):
+            curr = closes[i]
+            prev = base_price if i == 0 else closes[i-1]
+            if prev > 0:
+                p = (curr - prev) / prev * 100
+            else:
+                p = 0.0
+            interval_pcts.append(p)
+            
+        interval_pct_series = pd.Series(interval_pcts, index=df['时间'])
+        # We need to store this separately. Let's use a separate list.
+        # But process_block_data structure is getting complex.
+        # Let's attach it to the dataframe or create a new list.
+        # To minimize changes, let's create a new list 'interval_pct_series_list'
+        # But we need to pass it down.
+        # Let's just add it to normalized_series as a tuple? No, that breaks concat.
+        
+        # Let's create a parallel list for interval pcts
+        if 'interval_pct_series_list' not in locals():
+            interval_pct_series_list = []
+        interval_pct_series_list.append(interval_pct_series)
         
         # Volume
         vol = df['成交额']
@@ -211,23 +277,59 @@ def process_block_data(block_name, stock_list, valid_stocks):
         
     # Concatenate and mean
     # This handles missing timestamps by aligning to union of indices
-    all_pct = pd.concat(normalized_series, axis=1)
-    avg_pct = all_pct.mean(axis=1).sort_index()
+    # Use ignore_index=True to avoid duplicate column names (all series named '收盘' or '成交额')
+    all_pct = pd.concat(normalized_series, axis=1, ignore_index=True)
+    all_interval_pct = pd.concat(interval_pct_series_list, axis=1, ignore_index=True) # New: Interval Pcts
+    all_vol = pd.concat(volume_series, axis=1, ignore_index=True)
     
-    all_vol = pd.concat(volume_series, axis=1)
+    # --- Top Chart: Cumulative Turnover Weighted Index ---
+    # Weight at time t = Cumulative Turnover from start to t
+    cumulative_vol = all_vol.cumsum()
+    
+    # Numerator: Sum(Pct * Cumulative_Weight)
+    cumulative_weighted_sum = (all_pct * cumulative_vol).sum(axis=1)
+    
+    # Denominator: Sum(Cumulative_Weight) where Pct is not NaN
+    valid_mask = all_pct.notna().astype(int)
+    cumulative_weights_sum = (cumulative_vol * valid_mask).sum(axis=1)
+    
+    # Calculate average
+    avg_pct = cumulative_weighted_sum.divide(cumulative_weights_sum).fillna(0).sort_index()
+    
+    # --- Bottom Chart: Interval Turnover Weighted Index ---
+    # Weight at time t = Turnover in the specific 30min interval (all_vol)
+    # Value to weight = Interval Pct Change (all_interval_pct)
+    
+    # Numerator: Sum(Interval_Pct * Interval_Weight)
+    dynamic_weighted_sum = (all_interval_pct * all_vol).sum(axis=1)
+    
+    # Denominator: Sum(Interval_Weight) where Interval_Pct is not NaN
+    valid_mask_interval = all_interval_pct.notna().astype(int)
+    dynamic_weights_sum = (all_vol * valid_mask_interval).sum(axis=1)
+    
+    dynamic_avg_pct = dynamic_weighted_sum.divide(dynamic_weights_sum).fillna(0).sort_index()
+    
+    # Interval Volume (for Bottom Chart)
     total_vol = all_vol.sum(axis=1).sort_index()
+    
+    # Cumulative Volume (for Top Chart)
+    cumulative_total_vol = total_vol.cumsum()
     
     # Format for JSON
     # Times should be strings
     times = avg_pct.index.tolist()
     values = avg_pct.values.tolist()
+    dynamic_values = dynamic_avg_pct.values.tolist()
     volumes = total_vol.values.tolist()
+    cum_volumes = cumulative_total_vol.values.tolist()
     
     return {
         'name': block_name,
         'times': times,
         'values': [round(v, 2) for v in values],
-        'volumes': [round(v, 2) for v in volumes]
+        'dynamic_values': [round(v, 2) for v in dynamic_values],
+        'volumes': [round(v, 2) for v in volumes],
+        'cum_volumes': [round(v, 2) for v in cum_volumes]
     }
 
 def main():
@@ -278,10 +380,17 @@ def main():
         data_map[item['name']] = {
             'times': item['times'],
             'values': item['values'],
-            'volumes': item['volumes']
+            'dynamic_values': item.get('dynamic_values', []), # Ensure field exists
+            'volumes': item['volumes'],
+            'cum_volumes': item.get('cum_volumes', []) # Ensure field exists
         }
         
     print(f"Saving data to {json_path}...")
+    # Debug print to check if fields are populated
+    if block_results:
+        first_res = block_results[0]
+        print(f"Debug: First block '{first_res['name']}' has keys: {list(first_res.keys())}")
+        
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(data_map, f, ensure_ascii=False, indent=4)
         
