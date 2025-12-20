@@ -60,3 +60,6 @@ Thumbs.db
 # Environment Variables
 .env
 
+# Test Sources
+test_sources/
+

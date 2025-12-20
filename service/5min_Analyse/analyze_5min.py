@@ -113,6 +113,14 @@ def fetch_5min_data(code):
         records = []
         today_str = datetime.now().strftime("%Y-%m-%d")
         
+        # Add 9:00 start point with prev_close
+        if prev_close:
+            records.append({
+                'bar_time': '09:00:00',
+                'price': prev_close,
+                'amount': 0.0
+            })
+
         for item in min_data:
             parts = item.split(' ')
             if len(parts) < 2: continue
@@ -128,7 +136,7 @@ def fetch_5min_data(code):
             hm = int(time_str)
             
             # Filter out non-trading hours
-            if hm < 930 or (hm > 1130 and hm < 1300) or hm > 1500:
+            if hm < 900 or (hm > 1130 and hm < 1300) or hm > 1500:
                 continue
                 
             bar_time = get_5min_bar_time(hm)

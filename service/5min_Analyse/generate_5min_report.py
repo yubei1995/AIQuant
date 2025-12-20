@@ -115,6 +115,7 @@ def generate_5min_report(json_path, output_path):
             // State
             var isIsolated = false;
             var defaultTopN = 5;
+            var selectedBlocks = new Set(sortedNames.slice(0, defaultTopN));
             
             // Generate distinct colors for all blocks
             var colors = [
@@ -147,31 +148,12 @@ def generate_5min_report(json_path, output_path):
                             fontSize: 9,
                             color: '#333' // Default label color
                         }}
-                    }},
-                    {{
-                        type: 'category',
-                        data: sortedNames,
-                        show: false // Hidden axis for slider
                     }}
                 ],
                 yAxis: {{ type: 'value', splitLine: {{ show: false }} }},
-                dataZoom: [
-                    {{ 
-                        type: 'slider', 
-                        xAxisIndex: 1, // Control the hidden axis
-                        show: true, 
-                        startValue: 0, 
-                        endValue: 4, // Default Top 5
-                        height: 20,
-                        bottom: 5,
-                        brushSelect: false,
-                        handleSize: '100%'
-                    }}
-                ],
                 series: [{{
                     name: 'Return %',
                     type: 'bar',
-                    xAxisIndex: 0, // Bind series to the visible static axis
                     data: sortedValues, // Initial data
                     itemStyle: {{
                         color: '#ccc' // Default placeholder
@@ -300,27 +282,10 @@ def generate_5min_report(json_path, output_path):
             function updateTrendVisibility() {{
                 if (isIsolated) return;
                 
-                // Get range from the slider (which controls axis 1)
-                var model = rankChart.getModel().getComponent('dataZoom', 0);
-                var start = model.option.startValue;
-                var end = model.option.endValue;
-                
-                // Handle percent case if values are not set
-                if (start == null) {{
-                     var range = model.getPercentRange();
-                     start = Math.floor(range[0] * sortedNames.length / 100);
-                     end = Math.floor(range[1] * sortedNames.length / 100);
-                }}
-                
-                // Ensure bounds
-                if (start < 0) start = 0;
-                if (end >= sortedNames.length) end = sortedNames.length - 1;
-                
                 // 1. Update Trend Chart Visibility
-                var visibleNames = sortedNames.slice(start, end + 1);
                 var newSelected = {{}};
                 sortedNames.forEach(n => newSelected[n] = false);
-                visibleNames.forEach(n => newSelected[n] = true);
+                selectedBlocks.forEach(n => newSelected[n] = true);
                 
                 trendChart.setOption({{
                     legend: {{ selected: newSelected }},
@@ -333,7 +298,7 @@ def generate_5min_report(json_path, output_path):
                 // 2. Update Rank Chart Colors (Gray out non-selected)
                 var newBarData = sortedNames.map((name, idx) => {{
                     var val = sortedValues[idx];
-                    var col = (idx >= start && idx <= end) ? colorMap[name] : '#e0e0e0';
+                    var col = selectedBlocks.has(name) ? colorMap[name] : '#e0e0e0';
                     return {{
                         value: val,
                         itemStyle: {{ color: col }}
@@ -346,11 +311,6 @@ def generate_5min_report(json_path, output_path):
                     }}]
                 }});
             }}
-            
-            // Listen to DataZoom
-            rankChart.on('datazoom', function (params) {{
-                setTimeout(updateTrendVisibility, 0);
-            }});
             
             // Initial Sync
             updateTrendVisibility();
@@ -396,7 +356,29 @@ def generate_5min_report(json_path, output_path):
             
             // Click Events
             rankChart.on('click', function(params) {{
-                isolateBlock(params.name);
+                if (isIsolated) {{
+                    // If in isolation mode, clicking a bar switches to that single block isolation
+                    // Or should it exit isolation and add to selection?
+                    // User said: "I can click multiple blocks... but when I click a line... show details"
+                    // This implies rank chart is for multi-selection.
+                    // So if isolated, let's exit isolation and select ONLY the clicked one?
+                    // Or maybe just add it?
+                    // Let's assume: Exit isolation, clear selection, select clicked one (reset to single selection)
+                    // OR: Just toggle it in the background and exit isolation?
+                    
+                    // Let's go with: Exit isolation, and toggle selection of clicked item.
+                    exitIsolation();
+                    selectedBlocks.clear();
+                    selectedBlocks.add(params.name);
+                }} else {{
+                    // Toggle selection
+                    if (selectedBlocks.has(params.name)) {{
+                        selectedBlocks.delete(params.name);
+                    }} else {{
+                        selectedBlocks.add(params.name);
+                    }}
+                }}
+                updateTrendVisibility();
             }});
             
             trendChart.on('click', function(params) {{
@@ -406,12 +388,13 @@ def generate_5min_report(json_path, output_path):
             }});
 
             window.resetView = function() {{
-                if (isIsolated) exitIsolation();
-                rankChart.dispatchAction({{
-                    type: 'dataZoom',
-                    startValue: 0,
-                    endValue: 4
-                }});
+                if (isIsolated) {{
+                    exitIsolation();
+                }} else {{
+                    // Reset to Top 5
+                    selectedBlocks = new Set(sortedNames.slice(0, defaultTopN));
+                    updateTrendVisibility();
+                }}
             }};
             
             window.addEventListener('resize', function() {{

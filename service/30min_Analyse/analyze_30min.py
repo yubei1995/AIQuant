@@ -98,6 +98,14 @@ def fetch_30min_data(code):
         records = []
         today_str = datetime.now().strftime("%Y-%m-%d")
         
+        # Add 9:00 start point with prev_close
+        if prev_close:
+            records.append({
+                'bar_time': '09:00:00',
+                'price': prev_close,
+                'amount': 0.0
+            })
+
         for item in min_data:
             parts = item.split(' ')
             if len(parts) < 2: continue
@@ -114,7 +122,8 @@ def fetch_30min_data(code):
             hm = int(time_str)
             bar_time = None
             
-            if hm <= 1000: bar_time = "10:00:00"
+            if hm <= 930: bar_time = "09:30:00"
+            elif hm <= 1000: bar_time = "10:00:00"
             elif hm <= 1030: bar_time = "10:30:00"
             elif hm <= 1100: bar_time = "11:00:00"
             elif hm <= 1130: bar_time = "11:30:00"
