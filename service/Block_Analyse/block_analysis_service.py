@@ -361,10 +361,21 @@ def main():
     
     # Output Block Stats
     date_str = datetime.now().strftime("%Y%m%d")
-    block_csv_path = os.path.join(OUTPUT_DIR, f"block_statistics_{date_str}.csv")
+    block_csv_path = os.path.join(OUTPUT_DIR, "block_statistics.csv")
     
     print(f"Saving block stats to {block_csv_path}...")
     df_block.to_csv(block_csv_path, index=False, encoding='utf-8-sig')
+
+    # Archive Block Stats
+    archive_block_dir = os.path.join(project_root, "output", "block_statistics")
+    if not os.path.exists(archive_block_dir):
+        os.makedirs(archive_block_dir)
+    archive_block_path = os.path.join(archive_block_dir, f"block_statistics_{date_str}.csv")
+    if not os.path.exists(archive_block_path):
+         print(f"Archiving block stats to {archive_block_path}...")
+         df_block.to_csv(archive_block_path, index=False, encoding='utf-8-sig')
+    else:
+         print(f"Historical block stats already exists: {archive_block_path}")
     
     # Output Stock Details
     if stock_details:
@@ -378,9 +389,20 @@ def main():
         # Sort by Block (rank) then by PctChange (descending) within block
         df_details = df_details.sort_values(['Block', '涨跌幅(%)'], ascending=[True, False])
         
-        details_csv_path = os.path.join(OUTPUT_DIR, f"global_analysis_details_{date_str}.csv")
+        details_csv_path = os.path.join(OUTPUT_DIR, "global_analysis_details.csv")
         print(f"Saving stock details to {details_csv_path}...")
         df_details.to_csv(details_csv_path, index=False, encoding='utf-8-sig')
+
+        # Archive Details
+        archive_detail_dir = os.path.join(project_root, "output", "global_analysis_details")
+        if not os.path.exists(archive_detail_dir):
+            os.makedirs(archive_detail_dir)
+        archive_detail_path = os.path.join(archive_detail_dir, f"global_analysis_details_{date_str}.csv")
+        if not os.path.exists(archive_detail_path):
+            print(f"Archiving details to {archive_detail_path}...")
+            df_details.to_csv(archive_detail_path, index=False, encoding='utf-8-sig')
+        else:
+            print(f"Historical details already exists: {archive_detail_path}")
     
     # Generate Charts
     print("Generating charts...")
@@ -389,7 +411,7 @@ def main():
     
     # Generate HTML Report
     print("Generating HTML report...")
-    html_path = os.path.join(OUTPUT_DIR, f"global_analysis_report_{date_str}.html")
+    html_path = os.path.join(OUTPUT_DIR, "global_analysis_report.html")
     generate_html_report(block_csv_path, html_path)
     
     # Open chart and report

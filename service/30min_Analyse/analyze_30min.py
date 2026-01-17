@@ -381,7 +381,7 @@ def main():
         
     # Save Data to JSON
     date_str = datetime.now().strftime("%Y%m%d")
-    json_path = os.path.join(OUTPUT_DIR, f"30min_data_{date_str}.json")
+    json_path = os.path.join(OUTPUT_DIR, "30min_data.json")
     
     # Convert list to map for easier JSON structure
     data_map = {}
@@ -404,7 +404,7 @@ def main():
         json.dump(data_map, f, ensure_ascii=False, indent=4)
         
     # Generate HTML
-    html_path = os.path.join(OUTPUT_DIR, f"30min_analysis_{date_str}.html")
+    html_path = os.path.join(OUTPUT_DIR, "30min_analysis.html")
     print("Generating HTML report...")
     generate_30min_report(json_path, html_path)
     

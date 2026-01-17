@@ -3,17 +3,12 @@ import pandas as pd
 import json
 from datetime import datetime
 
-def generate_daily_report(date_str=None):
-    if date_str is None:
-        date_str = datetime.now().strftime("%Y%m%d")
-        
-    output_dir = os.path.join(os.path.dirname(__file__), "output")
-    
+def generate_daily_report(output_dir, date_str):
     # File paths
-    margin_path = os.path.join(output_dir, f"margin_data_{date_str}.csv")
-    foreign_path = os.path.join(output_dir, f"foreign_flow_{date_str}.csv")
-    lhb_path = os.path.join(output_dir, f"lhb_data_{date_str}.csv")
-    etf_path = os.path.join(output_dir, f"etf_shares_{date_str}.csv")
+    margin_path = os.path.join(output_dir, "margin_data.csv")
+    foreign_path = os.path.join(output_dir, "foreign_flow.csv")
+    lhb_path = os.path.join(output_dir, "lhb_data.csv")
+    etf_path = os.path.join(output_dir, "etf_shares.csv")
     
     # Load Data
     df_margin = pd.read_csv(margin_path) if os.path.exists(margin_path) else pd.DataFrame()
@@ -217,11 +212,11 @@ def generate_daily_report(date_str=None):
 </html>
     """
     
-    output_path = os.path.join(output_dir, f"daily_report_{date_str}.html")
+    output_path = os.path.join(output_dir, "daily_report.html")
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
         
     print(f"Report generated: {output_path}")
 
 if __name__ == "__main__":
-    generate_daily_report()
+    generate_daily_report(os.path.join(os.path.dirname(__file__), "output"), datetime.now().strftime("%Y%m%d"))

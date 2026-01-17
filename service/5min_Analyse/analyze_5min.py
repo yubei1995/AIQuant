@@ -310,7 +310,7 @@ def main():
         return
         
     date_str = datetime.now().strftime("%Y%m%d")
-    json_path = os.path.join(OUTPUT_DIR, f"5min_data_{date_str}.json")
+    json_path = os.path.join(OUTPUT_DIR, "5min_data.json")
     
     data_map = {}
     for item in block_results:
@@ -327,7 +327,7 @@ def main():
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(data_map, f, ensure_ascii=False, indent=4)
         
-    html_path = os.path.join(OUTPUT_DIR, f"5min_analysis_{date_str}.html")
+    html_path = os.path.join(OUTPUT_DIR, "5min_analysis.html")
     print("Generating HTML report...")
     generate_5min_report(json_path, html_path)
     

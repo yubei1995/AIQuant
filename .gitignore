@@ -48,6 +48,13 @@ output/
 
 # OS
 .DS_Store
+
+# Generated Reports and Archives
+share_reports/
+*.zip
+
+# Intermediate Test Data
+examples/test_sources/data/
 Thumbs.db
 
 # Logs

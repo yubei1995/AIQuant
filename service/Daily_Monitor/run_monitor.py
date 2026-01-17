@@ -37,28 +37,28 @@ def run_daily_monitor():
     date_str = datetime.now().strftime("%Y%m%d")
     
     if not df_margin.empty:
-        path = os.path.join(output_dir, f"margin_data_{date_str}.csv")
+        path = os.path.join(output_dir, "margin_data.csv")
         df_margin.to_csv(path, index=False, encoding='utf-8-sig')
         print(f"Saved Margin Data to {path}")
         
     if not df_foreign.empty:
-        path = os.path.join(output_dir, f"foreign_flow_{date_str}.csv")
+        path = os.path.join(output_dir, "foreign_flow.csv")
         df_foreign.to_csv(path, index=False, encoding='utf-8-sig')
         print(f"Saved Foreign Flow Data to {path}")
         
     if not df_lhb.empty:
-        path = os.path.join(output_dir, f"lhb_data_{date_str}.csv")
+        path = os.path.join(output_dir, "lhb_data.csv")
         df_lhb.to_csv(path, index=False, encoding='utf-8-sig')
         print(f"Saved LHB Data to {path}")
         
     if not df_etf.empty:
-        path = os.path.join(output_dir, f"etf_shares_{date_str}.csv")
+        path = os.path.join(output_dir, "etf_shares.csv")
         df_etf.to_csv(path, index=False, encoding='utf-8-sig')
         print(f"Saved ETF Data to {path}")
         
     # 4. Generate Report
     print("Generating HTML Report...")
-    generate_daily_report(date_str)
+    generate_daily_report(output_dir, date_str)
         
     print("Daily Monitor Completed.")
 

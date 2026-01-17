@@ -60,7 +60,7 @@ def generate_advanced_charts(df_block, output_dir, date_str):
         ax.axhline(y=0, color='black', linewidth=0.8)
 
     plt.tight_layout(rect=[0, 0.03, 1, 0.97])
-    chart_path = os.path.join(output_dir, f"advanced_block_chart_{date_str}.png")
+    chart_path = os.path.join(output_dir, "advanced_block_chart.png")
     plt.savefig(chart_path)
     plt.close()
     return chart_path
