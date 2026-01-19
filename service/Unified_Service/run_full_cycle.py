@@ -12,14 +12,14 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 # Each entry: { "name": Display Name, "script": Relative path to script, "cwd": Relative path to working dir }
 SERVICE_SEQUENCE = [
     {
+        "name": "Block Analysis",
+        "script": "service/Block_Analyse/block_analysis_service.py",
+        "cwd": "service/Block_Analyse"
+    },
+    {
         "name": "Daily Monitor",
         "script": "service/Daily_Monitor/run_monitor.py",
         "cwd": "service/Daily_Monitor"
-    },
-    {
-        "name": "Block Analysis",
-        "script": "service/Block_Analyse/block_analysis_service.py",
-        "cwd": "service/Block_Analyse" # Important: scripts often assume cwd is their own dir
     },
     {
         "name": "30min Analysis",

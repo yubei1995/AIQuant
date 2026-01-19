@@ -22,11 +22,3 @@ def load_stock_list(xml_path=None):
             stocks.append({'code': code, 'name': name, 'block': block.get('name')})
     return stocks
 
-NATIONAL_TEAM_ETFS = [
-    {'code': '510300', 'name': '沪深300ETF'},
-    {'code': '510050', 'name': '上证50ETF'},
-    {'code': '510500', 'name': '中证500ETF'},
-    {'code': '512100', 'name': '中证1000ETF'},
-    {'code': '588000', 'name': '科创50ETF'},
-    {'code': '159915', 'name': '创业板ETF'}
-]
