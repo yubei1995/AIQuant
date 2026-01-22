@@ -1,0 +1,132 @@
+<?xml version="1.0" ?>
+<LhbConfig>
+  <SeatMappings>
+    <Category name="网红游资">
+      <Alias name="陈小群">
+        <Branch match="contains">中国银河 大连黄河路</Branch>
+        <Branch match="contains">国泰君安 重庆解放碑</Branch>
+        <Branch match="contains">北京知春路</Branch>
+      </Alias>
+      <Alias name="章盟主">
+        <Branch match="contains">上海浦东新区海阳西路</Branch>
+        <Branch match="contains">宁波广福街</Branch>
+        <Branch match="contains">国泰海通 上海长宁区江苏路</Branch>
+        <Branch match="contains">国泰海通 上海徐汇区建国西路</Branch>
+        <Branch match="contains">中信 杭州延安路</Branch>
+        <Branch match="contains">中信 杭州富春路</Branch>
+      </Alias>
+      <Alias name="作手新一">
+        <Branch match="contains">南京太平南路</Branch>
+      </Alias>
+      <Alias name="方新侠">
+        <Branch match="contains">国金 西安朱雀大街</Branch>
+        <Branch match="contains">中信 西安朱雀大街</Branch>
+      </Alias>
+      <Alias name="桑田路">
+        <Branch match="contains">国盛 宁波桑田路</Branch>
+      </Alias>
+      <Alias name="消闲派">
+        <Branch match="contains">宜昌沿江大道</Branch>
+        <Branch match="contains">咸宁咸宁大道</Branch>
+      </Alias>
+      <Alias name="越王大道">
+        <Branch match="contains">国泰海通 河源越王大道</Branch>
+      </Alias>
+      <Alias name="深南东路">
+        <Branch match="contains">广发 深圳后海</Branch>
+        <Branch match="contains">国联民生宁波分公司</Branch>
+      </Alias>
+      <Alias name="余哥">
+        <Branch match="contains">东吴 苏州相城大道</Branch>
+        <Branch match="contains">甬兴宁波河源路</Branch>
+      </Alias>
+      <Alias name="呼家楼">
+        <Branch match="contains">中信 建投北京东城分公司</Branch>
+        <Branch match="contains">东方财富 昌都两江大道</Branch>
+        <Branch match="contains">华泰 苏州吴中大道</Branch>
+      </Alias>
+      <Alias name="流沙河">
+        <Branch match="contains">中国银河 绍兴</Branch>
+      </Alias>
+      <Alias name="散户">
+        <Branch match="contains">东方财富 拉萨团结路第一</Branch>
+        <Branch match="contains">东方财富 拉萨团结路第二</Branch>
+        <Branch match="contains">东方财富 拉萨东环路第一</Branch>
+        <Branch match="contains">东方财富 拉萨东环路第二</Branch>
+        <Branch match="contains">东方财富 金融城南环路</Branch>
+        <Branch match="contains">国信 浙江互联网分公司</Branch>
+      </Alias>
+      <Alias name="新闸路">
+        <Branch match="contains">国泰海通 上海静安区新闸路</Branch>
+      </Alias>
+      <Alias name="成都帮">
+        <Branch match="contains">国泰海通 成都北一环路</Branch>
+        <Branch match="contains">国泰海通 成都顺城大街</Branch>
+      </Alias>
+      <Alias name="佛山无影脚">
+        <Branch match="contains">国泰海通 三亚迎宾路</Branch>
+      </Alias>
+      <Alias name="中山东路">
+        <Branch match="contains">国泰海通 上海松江中山东路</Branch>
+      </Alias>
+      <Alias name="金开大道">
+        <Branch match="contains">方正 重庆金开大道</Branch>
+      </Alias>
+      <Alias name="上塘路">
+        <Branch match="contains">财通 杭州上塘路</Branch>
+        <Branch match="contains">联储 浙江分公司</Branch>
+        <Branch match="contains">联储 杭州环城北路</Branch>
+      </Alias>
+      <Alias name="交易猿">
+        <Branch match="contains">华泰 天津东丽开发区二纬路</Branch>
+      </Alias>
+      <Alias name="湖里大道">
+        <Branch match="contains">兴业 厦门湖里大道</Branch>
+      </Alias>
+      <Alias name="思明南路">
+        <Branch match="contains">东亚前海 上海分公司</Branch>
+        <Branch match="contains">东莞 湖北分公司</Branch>
+      </Alias>
+      <Alias name="溧阳路">
+        <Branch match="contains">中信 上海溧阳路营北部</Branch>
+      </Alias>
+    </Category>
+    <Category name="高频量化席位">
+      <Alias name="高频量化席位">
+        <Branch match="contains">高盛 世纪大道</Branch>
+        <Branch match="contains">瑞银 上海花园石桥路</Branch>
+        <Branch match="contains">摩根大通 银城中路</Branch>
+        <Branch match="contains">中国国际金融 上海分公司</Branch>
+        <Branch match="contains">中信 上海分公司</Branch>
+        <Branch match="contains">华泰 总部</Branch>
+        <Branch match="contains">国泰海通 总部</Branch>
+        <Branch match="contains">中国国际金融 北京建国门外大街</Branch>
+        <Branch match="contains">中信 北京建国门</Branch>
+        <Branch match="contains">平安 深圳分公司</Branch>
+        <Branch match="contains">中信 深圳滨海大道</Branch>
+        <Branch match="contains">中信 北京安外大街</Branch>
+        <Branch match="contains">国泰海通 济南舜华路</Branch>
+        <Branch match="contains">开源 西安西大街</Branch>
+        <Branch match="contains">华鑫 上海分公司</Branch>
+        <Branch match="contains">华鑫 上海陆家嘴</Branch>
+        <Branch match="contains">国新 北京中关村大街</Branch>
+        <Branch match="contains">华鑫 成都天府大道</Branch>
+        <Branch match="contains">开源 西安太华路</Branch>
+        <Branch match="contains">东莞 厦门分公司</Branch>
+        <Branch match="contains">开源 西安高新成章路</Branch>
+      </Alias>
+    </Category>
+    <Category name="机构">
+      <Alias name="机构专用">
+        <Branch match="contains">机构</Branch>
+        <Branch match="contains">机构席位</Branch>
+      </Alias>
+    </Category>
+    <Category name="外资">
+      <Alias name="陆股通">
+        <Branch match="contains">深股通</Branch>
+        <Branch match="contains">沪股通</Branch>
+      </Alias>
+    </Category>
+  </SeatMappings>
+</LhbConfig>

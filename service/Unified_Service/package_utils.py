@@ -30,6 +30,11 @@ SERVICES = [
         "name": "Daily Monitor",
         "output_dir": os.path.join(PROJECT_ROOT, "service", "Daily_Monitor", "output"),
         "report_pattern": "daily_report.html"
+    },
+    {
+        "name": "LHB Analysis",
+        "output_dir": os.path.join(PROJECT_ROOT, "service", "LHB_Analyse", "output"),
+        "report_pattern": "lhb_analysis_report.html"
     }
 ]
 
@@ -136,6 +141,8 @@ def package_all_reports():
                 
                 # Replace CDN with local file
                 content = content.replace(ECHARTS_URL, "echarts.min.js")
+                # Also replace relative path if it exists (from LHB report)
+                content = content.replace("../../../share_reports/echarts.min.js", "echarts.min.js")
                 
                 with open(dest_path, 'w', encoding='utf-8') as f:
                     f.write(content)

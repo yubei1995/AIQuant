@@ -17,6 +17,11 @@ SERVICE_SEQUENCE = [
         "cwd": "service/Block_Analyse"
     },
     {
+        "name": "LHB Analysis",
+        "script": "service/LHB_Analyse/lhb_detailed_analyzer.py",
+        "cwd": "service/LHB_Analyse"
+    },
+    {
         "name": "Daily Monitor",
         "script": "service/Daily_Monitor/run_monitor.py",
         "cwd": "service/Daily_Monitor"
