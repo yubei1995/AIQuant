@@ -27,7 +27,9 @@ jobs:
         # sudo apt-get install -y ...
 
     - name: Run Full Cycle Analysis
-      run: python run_full_cycle.py
+      run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
+        python service/Unified_Service/run_full_cycle.py
 
     # ----------------------------------------------------
     # 修复点：将 v3 修改为 v4
