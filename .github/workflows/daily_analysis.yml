@@ -27,24 +27,27 @@ jobs:
         # sudo apt-get install -y ...
 
     - name: Run Full Cycle Analysis
-      run: |
-        # Ensure the script runs with the project root in PYTHONPATH if needed
-        export PYTHONPATH=$PYTHONPATH:$(pwd)
-        python service/Unified_Service/run_full_cycle.py
+      run: python run_full_cycle.py
+
+    # ----------------------------------------------------
+    # 修复点：将 v3 修改为 v4
+    # ----------------------------------------------------
+    - name: Upload Report Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: daily-reports
+        path: share_reports/
+        retention-days: 5
+
+    # (可选) 如果你的 send-mail 步骤前也有用到 download-artifact，也要一并改成 v4
+    # 但通常在这个脚本里，发邮件是直接读取当前目录的，可能不需要 download 步骤。
+    # 如果后面有 uses: actions/download-artifact@v3，请也改为 @v4
 
     - name: Zip Reports
       if: success()
       run: |
         cd share_reports
         zip -r ../analysis_reports.zip ./*
-
-    - name: Upload Report Artifact
-      uses: actions/upload-artifact@v3
-      if: success()
-      with:
-        name: analysis-reports
-        path: analysis_reports.zip
-        retention-days: 5
 
     - name: Send Email with Reports
       uses: dawidd6/action-send-mail@v3
