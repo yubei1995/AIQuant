@@ -49,16 +49,12 @@ jobs:
         path: share_reports/
         retention-days: 5
 
-    # (可# Remove JS files to prevent Gmail blocking (Security policy blocks zip containing .js)
-        rm -f *.js
-        选) 如果你的 send-mail 步骤前也有用到 download-artifact，也要一并改成 v4
-    # 但通常在这个脚本里，发邮件是直接读取当前目录的，可能不需要 download 步骤。
-    # 如果后面有 uses: actions/download-artifact@v3，请也改为 @v4
-
     - name: Zip Reports
       if: success()
       run: |
         cd share_reports
+        # Remove JS files to prevent Gmail blocking (Security policy blocks zip containing .js)
+        rm -f *.js
         zip -r ../analysis_reports.zip ./*
 
     - name: Send Email with Reports
