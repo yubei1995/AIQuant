@@ -215,24 +215,51 @@ def fetch_foreign_flows(stock_list):
 def fetch_lhb_data(stock_list):
     """
     Check if stocks are on LHB today.
+    Prioritizes local LHB analysis result to avoid redundant API calls.
     """
     print("Fetching LHB Data...")
-    today = datetime.now().strftime("%Y%m%d")
     
-    # Try EM first
+    # 1. Try Local File from LHB Analysis Service
+    # Path: service/Daily_Monitor/data_fetcher.py -> ... -> service/LHB_Analyse/output/lhb_latest_summary.csv
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(os.path.dirname(current_dir))
+    local_summary_path = os.path.join(project_root, "service", "LHB_Analyse", "output", "lhb_latest_summary.csv")
+    
     df = None
-    try:
-        df = ak.stock_lhb_detail_em(start_date=today, end_date=today)
-    except Exception as e:
-        print(f"LHB EM Error: {e}")
-        
-    # Try Sina if EM fails or empty
-    if df is None or df.empty:
+    if os.path.exists(local_summary_path):
         try:
-            print("Trying Sina LHB...")
-            df = ak.stock_lhb_detail_daily_sina(date=today)
+            # Check file age (ensure it's fresh, e.g. < 12 hours)
+            mtime = os.path.getmtime(local_summary_path)
+            if time.time() - mtime < 43200: 
+                print(f"Loading LHB data from local analysis: {local_summary_path}")
+                df = pd.read_csv(local_summary_path, dtype={'代码': str, '股票代码': str})
+                
+                # Ensure compatibility by remapping columns if needed
+                # CSV from LHB Analysis usually has: 代码, 名称, 上榜原因, 收盘价, 涨跌幅, 龙虎榜净买额
+                if '龙虎榜净买额' in df.columns:
+                    df['净买入额'] = df['龙虎榜净买额']
+            else:
+                print("Local LHB file is stale. Falling back to network...")
         except Exception as e:
-            print(f"LHB Sina Error: {e}")
+            print(f"Error reading local LHB file: {e}")
+
+    # 2. Network Fallback
+    if df is None or df.empty:
+        today = datetime.now().strftime("%Y%m%d")
+        
+        # Try EM first
+        try:
+            df = ak.stock_lhb_detail_em(start_date=today, end_date=today)
+        except Exception as e:
+            print(f"LHB EM Error: {e}")
+            
+        # Try Sina if EM fails or empty
+        if df is None or df.empty:
+            try:
+                print("Trying Sina LHB...")
+                df = ak.stock_lhb_detail_daily_sina(date=today)
+            except Exception as e:
+                print(f"LHB Sina Error: {e}")
             
     if df is None or df.empty:
         return pd.DataFrame()
@@ -241,7 +268,7 @@ def fetch_lhb_data(stock_list):
     results = []
     
     # Normalize columns
-    # EM: 代码, 名称, 上榜原因, 收盘价, 涨跌幅, 净买入额
+    # EM/Local: 代码, 名称, 上榜原因, 收盘价, 涨跌幅, 净买入额
     # Sina: 股票代码, 股票名称, 上榜理由, 收盘价, 涨跌幅, 净买入
     
     for _, row in df.iterrows():

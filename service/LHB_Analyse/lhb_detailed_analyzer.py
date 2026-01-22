@@ -116,6 +116,14 @@ def analyze_daily_lhb(date_str, config_path):
         stocks = df_summary['代码'].astype(str).unique().tolist()
     elif '股票代码' in df_summary.columns:
         stocks = df_summary['股票代码'].astype(str).unique().tolist()
+    
+    # Save Summary to CSV for Daily Monitor use
+    summary_file = os.path.join(OUTPUT_DIR, 'lhb_latest_summary.csv')
+    try:
+        df_summary.to_csv(summary_file, index=False, encoding='utf-8-sig')
+        print(f"LHB Summary saved to: {summary_file}")
+    except Exception as e:
+        print(f"Error saving LHB summary: {e}")
         
     print(f"Found {len(stocks)} stocks on LHB.")
     

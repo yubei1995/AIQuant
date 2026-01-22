@@ -2,41 +2,41 @@ import os
 import sys
 import subprocess
 import time
+import concurrent.futures
 from package_utils import package_all_reports
 
 # Configuration
 # service/Unified_Service/run_full_cycle.py -> service/Unified_Service -> service -> AIQuant
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Services to run in order
-# Each entry: { "name": Display Name, "script": Relative path to script, "cwd": Relative path to working dir }
-SERVICE_SEQUENCE = [
-    {
+# Defined Services
+SERVICES = {
+    "Block": {
         "name": "Block Analysis",
         "script": "service/Block_Analyse/block_analysis_service.py",
         "cwd": "service/Block_Analyse"
     },
-    {
+    "LHB": {
         "name": "LHB Analysis",
         "script": "service/LHB_Analyse/lhb_detailed_analyzer.py",
         "cwd": "service/LHB_Analyse"
     },
-    {
+    "Daily": {
         "name": "Daily Monitor",
         "script": "service/Daily_Monitor/run_monitor.py",
         "cwd": "service/Daily_Monitor"
     },
-    {
+    "30min": {
         "name": "30min Analysis",
         "script": "service/30min_Analyse/analyze_30min.py",
         "cwd": "service/30min_Analyse"
     },
-    {
+    "5min": {
         "name": "5min Analysis",
         "script": "service/5min_Analyse/analyze_5min.py",
         "cwd": "service/5min_Analyse"
     }
-]
+}
 
 def run_service(service_info):
     name = service_info["name"]
@@ -46,11 +46,7 @@ def run_service(service_info):
     script_path = os.path.join(PROJECT_ROOT, script_rel_path)
     cwd_path = os.path.join(PROJECT_ROOT, cwd_rel_path)
     
-    print(f"\n{'='*60}")
-    print(f"Starting Service: {name}")
-    print(f"Script: {script_path}")
-    print(f"Working Dir: {cwd_path}")
-    print(f"{'='*60}")
+    print(f"\n[START] {name}")
     
     start_time = time.time()
     
@@ -63,41 +59,84 @@ def run_service(service_info):
         existing_pythonpath = env.get("PYTHONPATH", "")
         env["PYTHONPATH"] = f"{PROJECT_ROOT}{os.pathsep}{existing_pythonpath}"
         
+        # Capture output to avoid interleaved printing in parallel exec
         result = subprocess.run(
             [sys.executable, script_path],
             cwd=cwd_path,
             env=env, # Pass the modified environment
+            capture_output=False, # Let it stream to console for now, though it might be messy
             check=True
         )
         
         duration = time.time() - start_time
         print(f"\n[SUCCESS] {name} completed in {duration:.2f} seconds.")
-        return True
+        return True, name
     
     except subprocess.CalledProcessError as e:
         print(f"\n[ERROR] {name} failed with exit code {e.returncode}.")
-        return False
+        return False, name
     except Exception as e:
         print(f"\n[ERROR] {name} failed with exception: {e}")
-        return False
+        return False, name
 
 def main():
     print(f"Starting Full AIQuant Workflow at {time.ctime()}")
     print(f"Project Root: {PROJECT_ROOT}")
+    print(f"Mode: Parallel Execution Optimized")
     
     failed_services = []
-    
-    for service in SERVICE_SEQUENCE:
-        success = run_service(service)
-        if not success:
-            failed_services.append(service["name"])
-            # Decide whether to stop or continue. 
-            # Usually if Daily Monitor fails (no data), others might fail too, 
-            # but we can try to continue for partial results.
-            print("Continuing to next service...")
+    start_total = time.time()
+
+    # Strategy:
+    # 1. Start [Block, LHB, 30min, 5min] in parallel.
+    # 2. Wait for LHB to finish.
+    # 3. Start Daily Monitor (Depends on LHB).
+    # 4. Wait for all.
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        # Submit independent tasks
+        future_block = executor.submit(run_service, SERVICES["Block"])
+        future_lhb = executor.submit(run_service, SERVICES["LHB"])
+        future_30min = executor.submit(run_service, SERVICES["30min"])
+        future_5min = executor.submit(run_service, SERVICES["5min"])
+        
+        independent_futures = [future_block, future_lhb, future_30min, future_5min]
+        
+        # Wait specifically for BOTH LHB and Block to finish before starting Daily Monitor
+        # Daily Monitor needs:
+        # 1. LHB data (from LHB Analysis)
+        # 2. Block Ranking (from Block Analysis) for sorting
+        print("\n[WAIT] Waiting for LHB and Block Analysis to complete before starting Daily Monitor...")
+        
+        concurrent.futures.wait([future_lhb, future_block])
+        
+        # Check results
+        try:
+            success_lhb, _ = future_lhb.result()
+        except: 
+            success_lhb = False
+            
+        try:
+            success_block, _ = future_block.result()
+        except:
+            success_block = False
+        
+        if success_lhb and success_block:
+            print("\n[INFO] Dependencies met (LHB & Block). Starting Daily Monitor...")
+        else:
+            print(f"\n[WARN] Dependencies missing (LHB: {success_lhb}, Block: {success_block}). Daily Monitor might have incomplete data.")
+            
+        future_daily = executor.submit(run_service, SERVICES["Daily"])
+        independent_futures.append(future_daily)
+
+        # Wait for everything else
+        for future in concurrent.futures.as_completed(independent_futures):
+            success, name = future.result()
+            if not success:
+                failed_services.append(name)
 
     print(f"\n{'='*60}")
-    print("All Services Execution Cycle Completed.")
+    print(f"All Services Execution Cycle Completed in {time.time() - start_total:.2f}s.")
     
     if failed_services:
         print(f"Warning: The following services failed: {', '.join(failed_services)}")
