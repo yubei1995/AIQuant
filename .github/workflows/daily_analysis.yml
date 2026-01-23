@@ -43,31 +43,9 @@ jobs:
         export PYTHONPATH=$PYTHONPATH:$(pwd)
         python service/Unified_Service/run_full_cycle.py
 
-    - name: Commit and Push History
-      run: |
-        git config --global user.name 'AIQuant Bot'
-        git config --global user.email 'aiquant-bot@users.noreply.github.com'
-        
-        # Pull latest changes to avoid conflicts
-        git pull --rebase
-        
-        # Force add ignored history files so the Bot can save them, 
-        # but they remain ignored for your local environment.
-        git add -f service/LHB_Analyse/output/lhb_analysis_history.csv
-        git add -f service/LHB_Analyse/output/lhb_alias_history.csv
-        git add -f data/lhb_config.xml
-        
-        # Check if there are changes and commit
-        if git diff --staged --quiet; then
-          echo "No changes to commit"
-        else
-          git commit -m "Update LHB analysis history [skip ci]"
-          git push
-        fi
+    # History push removed to simplify pipeline.
+    # The analysis script now handles backfilling history at runtime if needed.
 
-    # ----------------------------------------------------
-    # 修复点：将 v3 修改为 v4
-    # ----------------------------------------------------
     - name: Upload Report Artifacts
       uses: actions/upload-artifact@v4
       with:

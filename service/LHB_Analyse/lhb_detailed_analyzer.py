@@ -524,23 +524,45 @@ def analyze_daily_lhb(date_str, config_path):
     print(df_new.T)
 
 if __name__ == "__main__":
-    # For testing, use a recent real date if today is future
-    # Or try today if available.
+    # Check for history file
+    history_file = os.path.join(OUTPUT_DIR, 'lhb_analysis_history.csv')
     
+    # default target is today
     if len(sys.argv) > 1:
         target_date = sys.argv[1]
     else:
         target_date = datetime.now().strftime("%Y%m%d")
-    
-    # target_date = "20240119" # Manual override for testing if needed
-    
-    print(f"Running analysis for {target_date}...")
-    
+
     config_path = os.path.join(os.path.dirname(__file__), '../../data/lhb_config.xml')
+
+    # If history is missing, we perform a backfill for the last N days (e.g., 5 days) to provide some trend context
+    # This allows stateless runs (GitHub Actions) without needing to commit history back to repo.
+    if not os.path.exists(history_file):
+        print("History file not found. Starting backfill for trend context (last 5 days)...")
+        # Generate dates
+        backfill_days = 5
+        curr = datetime.strptime(target_date, "%Y%m%d")
+        
+        # Simple loop backwards
+        dates_to_run = []
+        for i in range(backfill_days, 0, -1):
+            d = curr - timedelta(days=i)
+            dates_to_run.append(d.strftime("%Y%m%d"))
+        
+        # Run backfill
+        for d in dates_to_run:
+            print(f"--- Backfill Analysis for {d} ---")
+            try:
+                # We catch errors here so one missing day doesn't stop the flow
+                analyze_daily_lhb(d, config_path)
+            except Exception as e:
+                print(f"Skipping backfill for {d}: {e}")
+
+    # Always run for the target date (Detailed analysis)
+    print(f"--- Running Main Analysis for {target_date} ---")
     analyze_daily_lhb(target_date, config_path)
     
     # Generate HTML Report
-    history_file = os.path.join(OUTPUT_DIR, 'lhb_analysis_history.csv')
     if os.path.exists(history_file):
         print("Generating HTML report...")
         try:
