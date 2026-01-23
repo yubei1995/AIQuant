@@ -139,10 +139,22 @@ def package_all_reports():
                 with open(latest_file, 'r', encoding='utf-8') as f:
                     content = f.read()
                 
-                # Replace CDN with local file
-                content = content.replace(ECHARTS_URL, "echarts.min.js")
-                # Also replace relative path if it exists (from LHB report)
-                content = content.replace("../../../share_reports/echarts.min.js", "echarts.min.js")
+                # Ensure we use CDN for echarts to avoid issues with missing local files or zip blocking
+                # If the content already uses ECHARTS_URL, this does nothing
+                # If it used local references, we replace them
+                content = content.replace("echarts.min.js", ECHARTS_URL)
+                # Fix double replacement if any (e.g. if filename was complex path ending in echarts.min.js)
+                # Just to be safe, if we accidentally created "https://.../https://...", fix it? 
+                # Actually, simpler logic:
+                # 1. First remove known local relative paths
+                content = content.replace("../../../share_reports/echarts.min.js", ECHARTS_URL)
+                content = content.replace("./echarts.min.js", ECHARTS_URL)
+                
+                # 2. If we just have bare "echarts.min.js" (from previous replace or origin), replace it
+                # Be careful not to replace the end of the CDN URL itself!
+                if f'src="{ECHARTS_URL}"' not in content and f"src='{ECHARTS_URL}'" not in content:
+                     content = content.replace('src="echarts.min.js"', f'src="{ECHARTS_URL}"')
+                     content = content.replace("src='echarts.min.js'", f"src='{ECHARTS_URL}'")
                 
                 with open(dest_path, 'w', encoding='utf-8') as f:
                     f.write(content)

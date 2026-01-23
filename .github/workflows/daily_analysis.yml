@@ -21,10 +21,12 @@ jobs:
 
     - name: Install dependencies
       run: |
+        # Install Chinese fonts to allow matplotlib to render Chinese characters properly
+        sudo apt-get update
+        sudo apt-get install -y fonts-wqy-zenhei
+
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        # Install additional system dependencies if needed for plotting libraries
-        # sudo apt-get install -y ...
 
     - name: Create Output Directories
       run: |

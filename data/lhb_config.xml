@@ -5,7 +5,6 @@
       <Alias name="陈小群">
         <Branch match="contains">中国银河 大连黄河路</Branch>
         <Branch match="contains">国泰君安 重庆解放碑</Branch>
-        <Branch match="contains">北京知春路</Branch>
       </Alias>
       <Alias name="章盟主">
         <Branch match="contains">上海浦东新区海阳西路</Branch>
@@ -55,7 +54,7 @@
         <Branch match="contains">东方财富 拉萨东环路第二</Branch>
         <Branch match="contains">东方财富 金融城南环路</Branch>
         <Branch match="contains">国信 浙江互联网分公司</Branch>
-      </Alias>
+      </Alias>222
       <Alias name="新闸路">
         <Branch match="contains">国泰海通 上海静安区新闸路</Branch>
       </Alias>
@@ -89,6 +88,11 @@
       </Alias>
       <Alias name="溧阳路">
         <Branch match="contains">中信 上海溧阳路营北部</Branch>
+      </Alias>
+    </Category>
+    <Category name="其他游资">
+      <Alias name="其他游资">
+        <Branch match="contains">北京知春路</Branch>
       </Alias>
     </Category>
     <Category name="高频量化席位">

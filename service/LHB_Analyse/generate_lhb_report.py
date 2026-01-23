@@ -468,16 +468,16 @@ def generate_html(df):
     
     # Write to local output (Deep path needs ../../../)
     # Path: service/LHB_Analyse/output/lhb_analysis_report.html
-    # Rel Path to echarts: ../../../share_reports/echarts.min.js
+    # Use CDN for better compatibility
+    cdn_url = "https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"
     with open(REPORT_FILE, 'w', encoding='utf-8') as f:
-        f.write(create_html("../../../share_reports/echarts.min.js"))
+        f.write(create_html(cdn_url))
     
     # Write to shared reports (Same folder path needs ./)
     # Path: share_reports/lhb_analysis_report.html
-    # Rel Path to echarts: ./echarts.min.js
     try:
         with open(SHARED_REPORT_FILE, 'w', encoding='utf-8') as f:
-            f.write(create_html("./echarts.min.js"))
+            f.write(create_html(cdn_url))
     except:
         pass
         
