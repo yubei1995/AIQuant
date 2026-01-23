@@ -2,6 +2,8 @@ import akshare as ak
 import pandas as pd
 from datetime import datetime, timedelta
 import time
+import os
+import concurrent.futures
 
 def fetch_margin_data(stock_list):
     """

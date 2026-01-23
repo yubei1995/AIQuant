@@ -14,17 +14,17 @@ SERVICES = [
     {
         "name": "5min Analysis",
         "output_dir": os.path.join(PROJECT_ROOT, "service", "5min_Analyse", "output"),
-        "report_pattern": "5min_analysis.html"
+        "report_pattern": "5min_analysis*.html"
     },
     {
         "name": "30min Analysis",
         "output_dir": os.path.join(PROJECT_ROOT, "service", "30min_Analyse", "output"),
-        "report_pattern": "30min_analysis.html"
+        "report_pattern": "30min_analysis*.html"
     },
     {
         "name": "Block Analysis",
         "output_dir": os.path.join(PROJECT_ROOT, "service", "Block_Analyse", "output"),
-        "report_pattern": "global_analysis_report.html"
+        "report_pattern": "global_analysis_report*.html"
     },
     {
         "name": "Daily Monitor",
@@ -34,7 +34,7 @@ SERVICES = [
     {
         "name": "LHB Analysis",
         "output_dir": os.path.join(PROJECT_ROOT, "service", "LHB_Analyse", "output"),
-        "report_pattern": "lhb_analysis_report.html"
+        "report_pattern": "lhb_analysis_report*.html"
     }
 ]
 
@@ -120,7 +120,7 @@ def package_all_reports():
     if not os.path.exists(DEST_DIR):
         os.makedirs(DEST_DIR)
     
-    download_assets()
+    # download_assets() # Skipped to avoid Gmail blocking .js files in ZIP
     
     copied_files = []
     
@@ -140,18 +140,23 @@ def package_all_reports():
                     content = f.read()
                 
                 # Ensure we use CDN for echarts to avoid issues with missing local files or zip blocking
-                # If the content already uses ECHARTS_URL, this does nothing
-                # If it used local references, we replace them
-                content = content.replace("echarts.min.js", ECHARTS_URL)
-                # Fix double replacement if any (e.g. if filename was complex path ending in echarts.min.js)
-                # Just to be safe, if we accidentally created "https://.../https://...", fix it? 
-                # Actually, simpler logic:
-                # 1. First remove known local relative paths
-                content = content.replace("../../../share_reports/echarts.min.js", ECHARTS_URL)
-                content = content.replace("./echarts.min.js", ECHARTS_URL)
+                # Only replace local references, do NOT do a blanket replace of "echarts.min.js" which breaks existing CDN links
                 
-                # 2. If we just have bare "echarts.min.js" (from previous replace or origin), replace it
-                # Be careful not to replace the end of the CDN URL itself!
+                # 1. Replace known local pathes first
+                local_paths = [
+                    "../../../share_reports/echarts.min.js",
+                    "../../share_reports/echarts.min.js",
+                    "../share_reports/echarts.min.js",
+                    "./echarts.min.js"
+                ]
+                
+                for path in local_paths:
+                    content = content.replace(path, ECHARTS_URL)
+                
+                # 2. Check for bare `src="echarts.min.js"` references that are NOT part of the CDN URL
+                # If the file uses `src="echarts.min.js"`, we update it.
+                # If it uses `src="https://cdn.../echarts.min.js"`, we leave it alone.
+                
                 if f'src="{ECHARTS_URL}"' not in content and f"src='{ECHARTS_URL}'" not in content:
                      content = content.replace('src="echarts.min.js"', f'src="{ECHARTS_URL}"')
                      content = content.replace("src='echarts.min.js'", f"src='{ECHARTS_URL}'")
