@@ -3,7 +3,7 @@ name: Daily AIQuant Analysis
 on:
   workflow_dispatch:  # Allows manual triggering
   schedule:
-    - cron: '0 9 * * 1-5'  # Runs at 09:00 UTC (17:00 Beijing Time) on weekdays
+    - cron: '0 8 * * 1-5'  # Runs at 08:00 UTC (16:00 Beijing Time) on weekdays
 
 jobs:
   run-analysis:
