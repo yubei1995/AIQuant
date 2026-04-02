@@ -388,8 +388,23 @@ def analyze_daily_lhb(date_str, config_path):
     try:
         if granular_records:
             alias_detail_file = os.path.join(OUTPUT_DIR, 'lhb_latest_alias_detail.csv')
-            pd.DataFrame(granular_records).to_csv(alias_detail_file, index=False, encoding='utf-8-sig')
+            df_granular = pd.DataFrame(granular_records)
+            df_granular.to_csv(alias_detail_file, index=False, encoding='utf-8-sig')
             print(f"Granular alias details saved to: {alias_detail_file}")
+
+            # Persist to long-term history for win rate analysis
+            stock_history_file = os.path.join(OUTPUT_DIR, 'lhb_alias_stock_history.csv')
+            if os.path.exists(stock_history_file):
+                try:
+                    df_hist = pd.read_csv(stock_history_file)
+                    df_hist = df_hist[df_hist['date'].astype(str) != date_str]
+                    df_stock_hist = pd.concat([df_hist, df_granular], ignore_index=True)
+                except Exception:
+                    df_stock_hist = df_granular
+            else:
+                df_stock_hist = df_granular
+            df_stock_hist.to_csv(stock_history_file, index=False, encoding='utf-8-sig')
+            print(f"Alias stock history appended to: {stock_history_file}")
     except Exception as e:
         print(f"Error saving alias details: {e}")
 
@@ -570,3 +585,14 @@ if __name__ == "__main__":
             generate_html(df_hist)
         except Exception as e:
             print(f"Error generating HTML report: {e}")
+
+    # Run seat win rate analysis
+    print("\nRunning seat win rate analysis...")
+    try:
+        from seat_winrate_analyzer import analyze_win_rates, generate_winrate_html
+        result = analyze_win_rates()
+        if result:
+            df_stats, df_detail = result
+            generate_winrate_html(df_stats, df_detail)
+    except Exception as e:
+        print(f"Win rate analysis failed (non-critical): {e}")

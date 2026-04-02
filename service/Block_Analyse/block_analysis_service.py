@@ -72,7 +72,8 @@ def get_name_code_map(fetcher: StockDataFetcher) -> dict:
 def fetch_stock_history(code, fetcher):
     try:
         # Fetch enough history for 10-day calculation
-        return fetcher.get_stock_hist(code, start_date="20240101", end_date="20251231")
+        end_date = (datetime.now() + timedelta(days=1)).strftime("%Y%m%d")
+        return fetcher.get_stock_hist(code, start_date="20240101", end_date=end_date)
     except Exception as e:
         print(f"Failed to fetch history for {code}: {e}")
         return None

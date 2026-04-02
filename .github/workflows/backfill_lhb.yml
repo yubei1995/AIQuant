@@ -1,0 +1,74 @@
+name: Backfill LHB History
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '回填天数（交易日）'
+        required: false
+        default: '30'
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -q
+        sudo apt-get install -y fonts-wqy-zenhei
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Create output directories
+      run: |
+        mkdir -p service/LHB_Analyse/output
+        mkdir -p share_reports
+
+    - name: Run LHB backfill
+      run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
+        cd service/LHB_Analyse
+        python backfill_lhb_history.py ${{ github.event.inputs.days }}
+
+    - name: Upload win rate report
+      uses: actions/upload-artifact@v4
+      with:
+        name: seat-winrate-report
+        path: |
+          service/LHB_Analyse/output/seat_winrate_report.html
+          service/LHB_Analyse/output/seat_winrate.csv
+          service/LHB_Analyse/output/seat_winrate_detail.csv
+          service/LHB_Analyse/output/lhb_alias_stock_history.csv
+        retention-days: 30
+
+    - name: Send win rate report via email
+      uses: dawidd6/action-send-mail@v3
+      if: success()
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.MAIL_USERNAME }}
+        password: ${{ secrets.MAIL_PASSWORD }}
+        subject: 龙虎榜席位胜率报告（回填 ${{ github.event.inputs.days }} 天）
+        body: |
+          龙虎榜席位历史胜率回填完成。
+
+          请在附件中查看 seat_winrate_report.html。
+
+          Run ID: ${{ github.run_id }}
+        to: ${{ secrets.MAIL_TO }}
+        from: AIQuant Bot
+        secure: true
+        attachments: service/LHB_Analyse/output/seat_winrate_report.html
