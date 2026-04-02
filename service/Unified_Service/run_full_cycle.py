@@ -143,17 +143,33 @@ def main():
     
     print(f"{'='*60}")
     
+    # Signal Engine: scoring + backtest + unified dashboard
+    print("\nRunning Signal Engine (scoring + backtest + dashboard)...")
+    try:
+        signal_engine_dir = os.path.join(PROJECT_ROOT, 'service', 'Signal_Engine')
+        env = os.environ.copy()
+        existing_pythonpath = env.get("PYTHONPATH", "")
+        env["PYTHONPATH"] = f"{PROJECT_ROOT}{os.pathsep}{existing_pythonpath}"
+        subprocess.run(
+            [sys.executable, os.path.join(signal_engine_dir, 'dashboard.py')],
+            cwd=signal_engine_dir,
+            env=env,
+            check=False   # non-critical: don't abort pipeline on failure
+        )
+    except Exception as e:
+        print(f"Signal Engine failed (non-critical): {e}")
+
     # Package Results
     print("\nStarting Report Packaging...")
     try:
         index_path = package_all_reports()
         print(f"\nWorkflow Finished Successfully.")
         print(f"Consolidated Report Available at: {index_path}")
-        
+
         # Open the report on Windows
         if os.name == 'nt':
             os.startfile(index_path)
-            
+
     except Exception as e:
         print(f"Error during packaging: {e}")
 

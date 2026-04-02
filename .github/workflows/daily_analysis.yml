@@ -37,6 +37,8 @@ jobs:
         mkdir -p service/Daily_Monitor/output
         mkdir -p service/30min_Analyse/output
         mkdir -p service/5min_Analyse/output
+        mkdir -p service/Signal_Engine/output
+        mkdir -p share_reports
 
     - name: Run Full Cycle Analysis
       run: |
@@ -65,16 +67,21 @@ jobs:
       uses: dawidd6/action-send-mail@v3
       if: success()
       with:
-        # You need to set these secrets in your GitHub Repository Settings -> Secrets and variables -> Actions
         server_address: smtp.gmail.com
         server_port: 465
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}
-        subject: Daily AIQuant Analysis Report - ${{ github.run_id }}
+        subject: AIQuant 每日决策简报 - ${{ github.run_id }}
         body: |
-          The daily analysis cycle has completed successfully.
-          Please find the attached reports.
-          
+          AIQuant 每日分析完成，请查收今日交易决策简报。
+
+          📊 打开 dashboard.html 查看：
+            - 今日信号评分排行
+            - 策略回测绩效
+            - 板块强度排行
+            - 席位胜率总览
+            - 龙虎榜资金流向
+
           Run ID: ${{ github.run_id }}
         to: ${{ secrets.MAIL_TO }}
         from: AIQuant Bot
