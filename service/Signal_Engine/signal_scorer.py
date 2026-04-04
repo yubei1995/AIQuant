@@ -84,37 +84,69 @@ def score_today_signals() -> pd.DataFrame:
         t1_avg = info.get('T+1_平均收益(%)')
         t1_n   = info.get('T+1_样本数', 0)
 
-        score = _score(alias, net_amt, winrate_map)
+        score  = _score(alias, net_amt, winrate_map)
+        t1_n_i = int(t1_n) if t1_n and str(t1_n) != 'nan' else 0
 
-        if score >= 8:
-            level, level_color = '强烈关注', '#c0392b'
-        elif score >= 6:
-            level, level_color = '关注',     '#e67e22'
+        # ── 核心判断：敢说话 ──────────────────────────────────────
+        try:
+            t1_wr_f  = float(t1_wr)
+            t1_avg_f = float(t1_avg)
+        except (TypeError, ValueError):
+            t1_wr_f  = 0.0
+            t1_avg_f = 0.0
+
+        if score >= 8 and t1_n_i >= 10 and t1_wr_f >= 60:
+            verdict       = '值得参与'
+            verdict_color = '#27ae60'
+            verdict_icon  = '✅'
+            position_hint = '建议仓位 5-8%'
+            risk_note     = f"止损参考：跌破昨收 2% 离场"
+        elif score >= 6 and t1_n_i >= 5 and t1_wr_f >= 55:
+            verdict       = '谨慎参与'
+            verdict_color = '#e67e22'
+            verdict_icon  = '⚠️'
+            position_hint = '建议仓位 3-5%'
+            risk_note     = f"样本偏少，控制仓位，严格止损"
         else:
-            level, level_color = '观望',     '#7f8c8d'
+            verdict       = '本次观望'
+            verdict_color = '#7f8c8d'
+            verdict_icon  = '⛔'
+            position_hint = '不参与'
+            risk_note     = '数据支撑不足，等待更好机会'
+
+        # ── 逻辑说明一句话 ───────────────────────────────────────
+        net_wan = int(net_amt / 10000)
+        if t1_n_i > 0:
+            why = f"{alias} 历史 T+1 胜率 {t1_wr_f:.1f}%（{t1_n_i} 次样本），今日净买入 {net_wan} 万"
+        else:
+            why = f"{alias} 今日净买入 {net_wan} 万，历史胜率数据积累中"
 
         def _fmt_pct(v):
             try: return f"{float(v):.1f}%"
-            except: return '数据积累中'
+            except: return '积累中'
 
         def _fmt_ret(v):
             try: return f"{float(v):+.2f}%"
             except: return '-'
 
         records.append({
-            'score':       score,
-            'level':       level,
-            'level_color': level_color,
-            'alias':       alias,
-            'category':    row.get('category', ''),
-            'stock_code':  str(row.get('stock_code', '')),
-            'stock_name':  str(row.get('stock_name', '')),
-            'net_amt':     net_amt,
-            'buy_amt':     float(row.get('buy_amt', 0)),
-            'T+1_胜率':    _fmt_pct(t1_wr),
-            'T+3_胜率':    _fmt_pct(t3_wr),
-            'T+1_均收益':  _fmt_ret(t1_avg),
-            '样本数':       int(t1_n) if t1_n and str(t1_n) != 'nan' else 0,
+            'score':         score,
+            'verdict':       verdict,
+            'verdict_color': verdict_color,
+            'verdict_icon':  verdict_icon,
+            'position_hint': position_hint,
+            'risk_note':     risk_note,
+            'why':           why,
+            'alias':         alias,
+            'category':      row.get('category', ''),
+            'stock_code':    str(row.get('stock_code', '')),
+            'stock_name':    str(row.get('stock_name', '')),
+            'net_amt':       net_amt,
+            'buy_amt':       float(row.get('buy_amt', 0)),
+            'T+1_胜率':      _fmt_pct(t1_wr),
+            'T+3_胜率':      _fmt_pct(t3_wr),
+            'T+1_均收益':    _fmt_ret(t1_avg),
+            '样本数':         t1_n_i,
         })
 
     if not records:
